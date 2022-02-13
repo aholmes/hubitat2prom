@@ -13,8 +13,8 @@ public class HubitatEnv
         Guid.TryParseExact(Environment.GetEnvironmentVariable("HE_TOKEN"), "D", out HE_TOKEN);
 
         string errors = "";
-        if (HE_URI == default) errors += "\n`HE_URI` is null";
-        if (HE_TOKEN == default) errors += "\n`HE_TOKEN` is null";
+        if (HE_URI == default) errors += "\n`HE_URI` is empty";
+        if (HE_TOKEN == default) errors += "\n`HE_TOKEN` is empty";
         if (errors != "") throw new Exception($"Both `HE_URI` and `HE_TOKEN` must be set in the application's environment variables.{errors}");
 
         HE_METRICS = Environment.GetEnvironmentVariable("HE_METRICS")
