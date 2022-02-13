@@ -33,7 +33,8 @@ public class Hubitat
         var uriBuilder = _authenticatedUriBuilder();
 
         var response = await _httpClient.GetAsync(uriBuilder.ToString());
-        return await response.Content.ReadFromJsonAsync<DeviceSummaryModel[]>();
+        var result = await response.Content.ReadFromJsonAsync<DeviceSummaryModel[]>();
+        return result;
     }
 
     public async Task<dynamic> DeviceDetails(int deviceId)
