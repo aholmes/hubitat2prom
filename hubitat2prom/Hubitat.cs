@@ -10,21 +10,21 @@ using hubitat2prom.HubitatModels;
 namespace hubitat2prom;
 public class Hubitat
 {
-    private HubitatEnv _env;
     private Uri _baseUri;
+    private string _authToken;
     private HttpClient _httpClient;
 
-    public Hubitat(HubitatEnv env, Uri baseUri, HttpClient httpClient)
+    public Hubitat(Uri baseUri, Guid authToken, HttpClient httpClient)
     {
-        _env = env;
         _baseUri = baseUri;
+        _authToken = authToken.ToString("D");
         _httpClient = httpClient;
     }
 
     private UriBuilder _authenticatedUriBuilder()
     {
         var uriBuilder = new UriBuilder(_baseUri);
-        uriBuilder.Query = $"access_token={_env.HE_URI}";
+        uriBuilder.Query = $"access_token={_authToken}";
         return uriBuilder;
     }
 
