@@ -24,7 +24,7 @@ public class HubitatController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<InfoModel> GetInfo()//IEnumerable<int> Get()
+    public async Task<PrometheusExporterInfo> GetInfo()//IEnumerable<int> Get()
     {
         var devices = await _hubitat.Devices();
         return null;

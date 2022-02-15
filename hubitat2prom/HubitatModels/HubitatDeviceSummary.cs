@@ -1,5 +1,5 @@
 namespace hubitat2prom.HubitatModels;
-public class DeviceSummaryModel
+public class HubitatDeviceSummary
 {
     public string id { get; set; }
     public string name { get; set; }

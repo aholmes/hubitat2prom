@@ -1,11 +1,13 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using hubitat2prom.HubitatModels;
+using OneOf;
 
 namespace hubitat2prom;
 public class Hubitat
@@ -28,35 +30,131 @@ public class Hubitat
         return uriBuilder;
     }
 
-    public async Task<DeviceSummaryModel[]> Devices()
+    public async Task<HubitatDeviceSummary[]> Devices()
     {
         var uriBuilder = _authenticatedUriBuilder();
 
         var response = await _httpClient.GetAsync(uriBuilder.ToString());
-        var result = await response.Content.ReadFromJsonAsync<DeviceSummaryModel[]>();
+        var result = await response.Content.ReadFromJsonAsync<HubitatDeviceSummary[]>();
         return result;
     }
 
-    public async Task<dynamic> DeviceDetails(int deviceId)
+    public async Task<HubitatDeviceDetails> DeviceDetails(HubitatDeviceSummary device)
     {
         var uriBuilder = _authenticatedUriBuilder();
-        uriBuilder.PathAppend(deviceId.ToString());
+        uriBuilder.PathAppend(device.id.ToString());
+
+        var jsonSerializerOptions = new JsonSerializerOptions
+        {
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+                | JsonNumberHandling.AllowNamedFloatingPointLiterals
+            
+        };
+        jsonSerializerOptions.Converters.Add(new OneOfIntStringJsonConverter());
+        jsonSerializerOptions.Converters.Add(new OneOfStringHubitatDeviceCapabilitiesJsonConverter());
+        jsonSerializerOptions.UnknownTypeHandling = JsonUnknownTypeHandling.JsonNode;
 
         var response = await _httpClient.GetAsync(uriBuilder.ToString());
-        var data = await response.Content.ReadFromJsonAsync<dynamic>();
-        return data;
+        var result = await response.Content.ReadFromJsonAsync<HubitatDeviceDetails>(jsonSerializerOptions);
+        return result;
     }
 }
 
-public static class UriBuilderExtensions
+public class OneOfIntStringJsonConverter : JsonConverter<OneOf<int, string>?>
 {
-    /**
-    * Changes the UriBuilder.Path to include additional path
-    * segments at the end of the existing Path.
-    */
-    public static void PathAppend(this UriBuilder uriBuilder, params string[] segments)
+    public override OneOf<int, string>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        uriBuilder.Path = string.Join('/', new[] { uriBuilder.Path.TrimEnd('/') }
-            .Concat(segments.Select(s => s.Trim('/'))));
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
+        }
+        else if (reader.TokenType == JsonTokenType.String)
+        {
+            return reader.GetString();
+        }
+        else
+        {
+            return reader.TryGetInt32(out int value)
+                ? value
+                : null;
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, OneOf<int, string>? value, JsonSerializerOptions options)
+    {
+        if (!value.HasValue)
+        {
+            writer.WriteNullValue();
+        }
+        else
+        {
+            value.Value.Switch(
+                @int => writer.WriteNumberValue(@int),
+                @string => writer.WriteStringValue(@string)
+            );
+        }
+    }
+}
+
+public class OneOfStringHubitatDeviceCapabilitiesJsonConverter : JsonConverter<OneOf<string, HubitatDeviceCapabilities>?>
+{
+    public override OneOf<string, HubitatDeviceCapabilities>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
+        }
+        else if (reader.TokenType == JsonTokenType.String)
+        {
+            return reader.GetString();
+        }
+        else if (reader.TokenType == JsonTokenType.StartObject)
+        {
+            var hubitatDeviceCapabilities = new HubitatDeviceCapabilities();
+            while (reader.Read())
+            {
+                if (reader.TokenType == JsonTokenType.EndObject)
+                {
+                    return hubitatDeviceCapabilities;
+                }
+
+                if (!(reader.TokenType == JsonTokenType.PropertyName && reader.GetString() == "attributes")) throw new JsonException("Device capabilities needs only an attributes property.");
+                
+                hubitatDeviceCapabilities.attributes = JsonSerializer.Deserialize<HubitatDeviceCapabilityAttributes[]>(ref reader, options);
+            }
+            throw new JsonException("Did not parse to end of object.");
+        }
+        throw new JsonException();
+    }
+
+    public override void Write(Utf8JsonWriter writer, OneOf<string, HubitatDeviceCapabilities>? value, JsonSerializerOptions options)
+    {
+        if (!value.HasValue)
+        {
+            writer.WriteNullValue();
+        }
+        else
+        {
+            value.Value.Switch(
+                @string => writer.WriteStringValue(@string),
+                capabilities =>
+                {
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("attributes");
+                    writer.WriteStartArray();
+                    foreach(var attribute in capabilities.attributes)
+                    {
+                        writer.WriteStartObject();
+                        writer.WritePropertyName("name");
+                        writer.WriteStringValue(attribute.name);
+                        writer.WritePropertyName("dataType");
+                        writer.WriteStringValue(attribute.dataType);
+                        writer.WriteEndObject();
+                    }
+                    writer.WriteEndArray();
+                    writer.WriteEndObject();
+                }
+            );
+        }
     }
 }
