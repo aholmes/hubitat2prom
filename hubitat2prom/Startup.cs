@@ -34,7 +34,7 @@ public class Startup
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = null;
-                options.JsonSerializerOptions.Converters.Add(new OneOfIntStringJsonConverter());
+                options.JsonSerializerOptions.Converters.Add(new OneOfDoubleStringJsonConverter());
             });
         services.AddSwaggerGen(c =>
         {

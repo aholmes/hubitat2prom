@@ -75,7 +75,11 @@ public class HubitatController : ControllerBase
             var deviceName = Regex.Replace(deviceDetail.label, INVALID_CHARACTER_REGEX, "_");
             
             var rawMetricValue = attribute.currentValue.Value;
-            var metricValue = 0f;
+            var metricValue = 0d;
+            if (rawMetricValue.TryPickT0(out double rawNumericValue, out string rawStringValue))
+            {
+                metricValue = rawNumericValue;
+            }
 
             switch(metricName)
             {
@@ -85,19 +89,20 @@ public class HubitatController : ControllerBase
                         : 0;
                 break;
                 case "power":
-                    if (TryGetPower(rawMetricValue.AsT1, out int power))
+                    // the value of power is either "on," "off," or a double.
+                    if (rawMetricValue.IsT1 && TryGetPower(rawStringValue, out double power))
                     {
                         metricValue = power;
                     }
                 break;
                 case "thermostatoperatingstate":
-                    if (TryGetThermostatOperatingState(rawMetricValue.AsT1, out int thermostatOperatingState))
+                    if (TryGetThermostatOperatingState(rawMetricValue.AsT1, out double thermostatOperatingState))
                     {
                         metricValue = thermostatOperatingState;
                     }
                 break;
                 case "thermostatmode":
-                    if (TryGetThermostatMode(rawMetricValue.AsT1, out int thermostatMode))
+                    if (TryGetThermostatMode(rawMetricValue.AsT1, out double thermostatMode))
                     {
                         metricValue = thermostatMode;
                     }
@@ -125,7 +130,7 @@ public class HubitatController : ControllerBase
         };
     }
     
-    private bool TryGetPower(string power, out int value)
+    private bool TryGetPower(string power, out double value)
     {
         if (power == "off")
         {
@@ -143,7 +148,7 @@ public class HubitatController : ControllerBase
         return false;
     }
 
-    private bool TryGetThermostatOperatingState(string thermostatOperatingState, out int value)
+    private bool TryGetThermostatOperatingState(string thermostatOperatingState, out double value)
     {
         switch(thermostatOperatingState)
         {
@@ -160,7 +165,7 @@ public class HubitatController : ControllerBase
         return false;
     }
     
-    private bool TryGetThermostatMode(string thermostatMode, out int value)
+    private bool TryGetThermostatMode(string thermostatMode, out double value)
     {
         switch(thermostatMode)
         {

@@ -5,9 +5,9 @@ using OneOf;
 
 namespace hubitat2prom.JsonConverters;
 
-public class OneOfIntStringJsonConverter : JsonConverter<OneOf<int, string>>
+public class OneOfDoubleStringJsonConverter : JsonConverter<OneOf<double, string>>
 {
-    public override OneOf<int, string> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override OneOf<double, string> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.String)
         {
@@ -15,16 +15,16 @@ public class OneOfIntStringJsonConverter : JsonConverter<OneOf<int, string>>
         }
         else
         {
-            return reader.TryGetInt32(out int value)
+            return reader.TryGetDouble(out double value)
                 ? value
                 : null;
         }
     }
 
-    public override void Write(Utf8JsonWriter writer, OneOf<int, string> value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, OneOf<double, string> value, JsonSerializerOptions options)
     {
         value.Switch(
-            @int => writer.WriteNumberValue(@int),
+            @double => writer.WriteNumberValue(@double),
             @string => writer.WriteStringValue(@string)
         );
     }
