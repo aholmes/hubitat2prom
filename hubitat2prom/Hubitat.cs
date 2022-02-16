@@ -14,13 +14,13 @@ public class Hubitat
 {
     private Uri _baseUri;
     private string _authToken;
-    private HttpClient _httpClient;
+    private IHttpClientFactory _httpClientFactory;
 
-    public Hubitat(Uri baseUri, Guid authToken, HttpClient httpClient)
+    public Hubitat(Uri baseUri, Guid authToken, IHttpClientFactory httpClientFactory)
     {
         _baseUri = baseUri;
         _authToken = authToken.ToString("D");
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
     }
 
     private UriBuilder _authenticatedUriBuilder()
@@ -34,7 +34,8 @@ public class Hubitat
     {
         var uriBuilder = _authenticatedUriBuilder();
 
-        var response = await _httpClient.GetAsync(uriBuilder.ToString());
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.GetAsync(uriBuilder.ToString());
         var result = await response.Content.ReadFromJsonAsync<HubitatDeviceSummary[]>();
         return result;
     }
@@ -54,7 +55,8 @@ public class Hubitat
         jsonSerializerOptions.Converters.Add(new OneOfStringHubitatDeviceCapabilitiesJsonConverter());
         jsonSerializerOptions.UnknownTypeHandling = JsonUnknownTypeHandling.JsonNode;
 
-        var response = await _httpClient.GetAsync(uriBuilder.ToString());
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.GetAsync(uriBuilder.ToString());
         var result = await response.Content.ReadFromJsonAsync<HubitatDeviceDetails>(jsonSerializerOptions);
         return result;
     }
