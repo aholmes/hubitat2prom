@@ -1,11 +1,8 @@
 using System;
-using System.Globalization;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using hubitat2prom.HubitatModels;
 using hubitat2prom.JsonConverters;
