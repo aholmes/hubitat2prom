@@ -63,7 +63,7 @@ public class HubitatController : ControllerBase
         var deviceDetailTasks = devices.Select(_hubitat.DeviceDetails);
         var deviceDetails = await Task.WhenAll(deviceDetailTasks);
 
-        var deviceAttributes = new List<PrometheusHubitatDeviceDetail>();
+        var deviceAttributes = new List<HubitatDeviceMetricDetail>();
 
         foreach(var deviceDetail in deviceDetails)
         foreach(var attribute in deviceDetail.attributes)
@@ -109,7 +109,7 @@ public class HubitatController : ControllerBase
                 break;
             }
 
-            deviceAttributes.Add(new PrometheusHubitatDeviceDetail
+            deviceAttributes.Add(new HubitatDeviceMetricDetail
             {
                 DeviceName = deviceName,
                 MetricName = metricName,
