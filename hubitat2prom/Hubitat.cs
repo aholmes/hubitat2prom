@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -28,6 +29,15 @@ public class Hubitat
         var uriBuilder = new UriBuilder(_baseUri);
         uriBuilder.Query = $"access_token={_authToken}";
         return uriBuilder;
+    }
+
+    public async Task<HttpStatusCode> StatusCheck()
+    {
+        var uriBuilder = _authenticatedUriBuilder();
+
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.GetAsync(uriBuilder.ToString());
+        return response.StatusCode;
     }
 
     public async Task<HubitatDeviceSummary[]> Devices()

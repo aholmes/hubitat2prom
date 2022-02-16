@@ -1,3 +1,5 @@
+using System;
+
 namespace hubitat2prom.PrometheusModels;
 public class PrometheusExporterStatus
 {
@@ -5,8 +7,8 @@ public class PrometheusExporterStatus
 }
 public class PrometheusExporterConfig
 {
-    public string HE_URI { get; set; }
-    public string HE_TOKEN { get; set; }
+    public Uri HE_URI { get; set; }
+    public Guid HE_TOKEN { get; set; }
     public string[] HE_METRICS { get; set; }
 }
 public class PrometheusExporterInfo

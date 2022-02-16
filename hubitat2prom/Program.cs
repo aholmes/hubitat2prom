@@ -21,9 +21,5 @@ public class Program
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
-            })
-            .ConfigureServices(services =>
-            {
-                services.AddHttpClient();
             });
 }

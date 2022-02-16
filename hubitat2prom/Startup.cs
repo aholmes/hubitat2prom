@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,11 +27,24 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
 
-        services.AddControllers();
+        services
+            .AddControllers()
+            .AddJsonOptions(options => options
+                    .JsonSerializerOptions
+                    .PropertyNamingPolicy = null
+                );
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "hubitat2prom", Version = "v1" });
         });
+        services.AddHttpClient();
+        services.AddScoped(typeof(Hubitat), provider =>
+        {
+            var env = provider.GetRequiredService<HubitatEnv>();
+            var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, provider.GetRequiredService<IHttpClientFactory>());
+            return hubitat;
+        });
+        services.AddScoped(typeof(HubitatEnv));
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

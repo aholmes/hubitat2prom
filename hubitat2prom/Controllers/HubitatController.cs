@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using hubitat2prom.HubitatModels;
 using hubitat2prom.PrometheusModels;
@@ -24,16 +25,24 @@ public class HubitatController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<PrometheusExporterInfo> GetInfo()//IEnumerable<int> Get()
+    public async Task<PrometheusExporterInfo> GetInfo()
     {
-        var devices = await _hubitat.Devices();
-        return null;
-        //return Enumerable.Range(1, 5).Select(index => new Hubitat
-        //{
-        //    Date = DateTime.Now.AddDays(index),
-        //    TemperatureC = rng.Next(-20, 55),
-        //    Summary = Summaries[rng.Next(Summaries.Length)]
-        //})
-        //.ToArray();
+        var statusCode = await _hubitat.StatusCheck();
+
+        return new PrometheusExporterInfo
+        {
+            status = new PrometheusExporterStatus
+            {
+                CONNECTION = statusCode == HttpStatusCode.OK
+                    ? "ONLINE"
+                    : "OFFLINE"
+            },
+            config = new PrometheusExporterConfig
+            {
+                HE_URI = _env.HE_URI,
+                HE_TOKEN = Guid.Empty,
+                HE_METRICS = _env.HE_METRICS.Split(',')
+            }
+        };
     }
 }
