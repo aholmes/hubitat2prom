@@ -22,6 +22,8 @@ public class PrometheusHubitatDeviceDetail
 {
     public string DeviceName { get; set; }
     public string MetricName { get; set; }
-    public OneOf<int, string> MetricValue { get; set; }
+    public float MetricValue { get; set; }
     public DateTime MetricTimestamp { get; set; }
+    
+    public override string ToString() => $"{MetricName}{{device_name=\"{DeviceName}\"}} {MetricValue.ToString("F3")}";
 }

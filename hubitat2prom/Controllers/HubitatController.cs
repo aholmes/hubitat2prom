@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using hubitat2prom.HubitatModels;
 using hubitat2prom.PrometheusModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -56,7 +56,7 @@ public class HubitatController : ControllerBase
 
     [HttpGet]
     [Route("/metrics")]
-    public async Task<List<PrometheusHubitatDeviceDetail>> GetMetrics()
+    public async Task<ContentResult> GetMetrics()
     {
         var devices = await _hubitat.Devices();
 
@@ -74,31 +74,32 @@ public class HubitatController : ControllerBase
             var metricName = Regex.Replace(attribute.name, INVALID_CHARACTER_REGEX, "_");
             var deviceName = Regex.Replace(deviceDetail.label, INVALID_CHARACTER_REGEX, "_");
             
-            var metricValue = attribute.currentValue.Value;
+            var rawMetricValue = attribute.currentValue.Value;
+            var metricValue = 0f;
 
             switch(metricName)
             {
                 case "switch":
-                    metricValue = metricValue.AsT1 == "on"
+                    metricValue = rawMetricValue.AsT1 == "on"
                         ? 1
                         : 0;
                 break;
                 case "power":
-                    if (TryGetPower(metricValue.AsT1, out int power))
+                    if (TryGetPower(rawMetricValue.AsT1, out int power))
                     {
                         metricValue = power;
                     }
                 break;
                 case "thermostatoperatingstate":
-                    if (TryGetThermostatOperatingState(metricValue.AsT1, out int thermostatOperatingState))
+                    if (TryGetThermostatOperatingState(rawMetricValue.AsT1, out int thermostatOperatingState))
                     {
                         metricValue = thermostatOperatingState;
                     }
                 break;
                 case "thermostatmode":
-                    if (TryGetThermostatMode(metricValue.AsT1, out int thermostatMode))
+                    if (TryGetThermostatMode(rawMetricValue.AsT1, out int thermostatMode))
                     {
-                            metricValue = thermostatMode;
+                        metricValue = thermostatMode;
                     }
                 break;
             }
@@ -112,7 +113,16 @@ public class HubitatController : ControllerBase
             });
         }
 
-        return deviceAttributes;
+        var responseContent = new StringBuilder();
+        foreach(var deviceAttribute in deviceAttributes)
+        {
+            responseContent.AppendLine(deviceAttribute.ToString());
+        }
+
+        return new ContentResult
+        {
+            Content = responseContent.ToString()
+        };
     }
     
     private bool TryGetPower(string power, out int value)
