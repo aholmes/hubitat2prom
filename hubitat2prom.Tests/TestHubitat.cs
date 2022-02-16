@@ -9,17 +9,17 @@ namespace hubitat2prom.Tests;
 
 public class TestHubitat
 {
-    private HttpClient _httpClient;
-    public TestHubitat()
+    private IHttpClientFactory _httpClientFactory;
+    public TestHubitat(IHttpClientFactory httpClientFactory)
     {
-        _httpClient = new HttpClient();
+        _httpClientFactory = httpClientFactory;
     }
 
     [Fact]
     public async Task Devices_Returns_Summary()
     {
         var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClient);
+        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
         var devices = await hubitat.Devices();
         Assert.NotEmpty(devices);
         foreach(var device in devices)
@@ -35,7 +35,7 @@ public class TestHubitat
     public async Task DeviceDetails_Returns_Details()
     {
         var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClient);
+        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
         var devices = await hubitat.Devices();
 
         var device = devices.First();
