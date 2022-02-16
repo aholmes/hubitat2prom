@@ -81,7 +81,7 @@ public class HubitatController : ControllerBase
                 metricValue = rawNumericValue;
             }
 
-            switch(metricName)
+            switch(metricName.ToLowerInvariant())
             {
                 case "switch":
                     metricValue = rawMetricValue.AsT1 == "on"
