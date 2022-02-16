@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using hubitat2prom.JsonConverters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -29,10 +30,11 @@ public class Startup
 
         services
             .AddControllers()
-            .AddJsonOptions(options => options
-                    .JsonSerializerOptions
-                    .PropertyNamingPolicy = null
-                );
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                options.JsonSerializerOptions.Converters.Add(new OneOfIntStringJsonConverter());
+            });
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "hubitat2prom", Version = "v1" });

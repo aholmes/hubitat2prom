@@ -1,4 +1,5 @@
 using System;
+using OneOf;
 
 namespace hubitat2prom.PrometheusModels;
 public class PrometheusExporterStatus
@@ -15,4 +16,12 @@ public class PrometheusExporterInfo
 {
     public PrometheusExporterStatus status { get; set; }
     public PrometheusExporterConfig config { get; set; }
+}
+
+public class PrometheusHubitatDeviceDetail
+{
+    public string DeviceName { get; set; }
+    public string MetricName { get; set; }
+    public OneOf<int, string> MetricValue { get; set; }
+    public DateTime MetricTimestamp { get; set; }
 }

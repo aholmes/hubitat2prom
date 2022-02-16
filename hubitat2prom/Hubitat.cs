@@ -56,7 +56,7 @@ public class Hubitat
         uriBuilder.PathAppend(device.id.ToString());
 
         var jsonSerializerOptions = new JsonSerializerOptions();
-        jsonSerializerOptions.Converters.Add(new OneOfIntStringJsonConverter());
+        jsonSerializerOptions.Converters.Add(new OneOfIntStringNullableJsonConverter());
         jsonSerializerOptions.Converters.Add(new OneOfStringHubitatDeviceCapabilitiesJsonConverter());
 
         var httpClient = _httpClientFactory.CreateClient();
