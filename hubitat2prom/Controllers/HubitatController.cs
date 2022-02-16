@@ -49,7 +49,7 @@ public class HubitatController : ControllerBase
             {
                 HE_URI = _env.HE_URI,
                 HE_TOKEN = Guid.Empty,
-                HE_METRICS = _env.HE_METRICS.Split(',')
+                HE_METRICS = _collectedMetrics
             }
         };
     }
