@@ -133,7 +133,7 @@ public class TestHubitat
         foreach(var @enum in enums)
         {
             Assert.NotNull(@enum.values);
-            Assert.IsAssignableFrom(typeof(Array), @enum.values);
+            Assert.IsAssignableFrom<Array>(@enum.values);
         }
     }
 
