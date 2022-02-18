@@ -164,4 +164,20 @@ public class TestHubitat
                 );
         }
     }
+    
+    [Fact]
+    public async Task DeviceDetails_Returns_DetailSummary()
+    {
+        var env = new HubitatEnv();
+        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
+        var devices = await hubitat.Devices();
+
+        var device = devices.First();
+
+        var details = await hubitat.DeviceDetails();
+        Assert.NotNull(details);
+        Assert.NotEmpty(from detail in details select detail.attributes);
+        Assert.NotEmpty(from detail in details select detail.capabilities);
+        Assert.NotEmpty(from detail in details select detail.commands);
+    }
 }
