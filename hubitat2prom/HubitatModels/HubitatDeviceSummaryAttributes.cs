@@ -29,7 +29,7 @@ public class HubitatDeviceSummaryAttributes
     #region Dimmer attributes
     public int? level { get; set; }
     #endregion
-    
+
     #region Virtual Button attributes
     public int? doubleTapped { get; set; }
     #endregion
@@ -61,7 +61,7 @@ public class HubitatDeviceSummaryAttributes
     public string picture { get; set; }
     public string movieMode { get; set; }
     #endregion
-    
+
     #region Rachio attributes
     #region Rachio Controller attributes
     public int? curZoneId { get; set; }
@@ -93,7 +93,7 @@ public class HubitatDeviceSummaryAttributes
     public string durationNoCycle { get; set; }
     public string curZoneIsCycling { get; set; }
     #endregion
-    
+
     #region Rachio Zone attributes
     public string zoneDuration { get; set; }
     public string shadeName { get; set; }
@@ -123,11 +123,11 @@ public class HubitatDeviceSummaryAttributes
     public string cropName { get; set; }
     #endregion
     #endregion
-    
+
     #region Lutron Telnet attributes
     public string networkStatus { get; set; }
     #endregion
-    
+
     #region Thermostat attributes
     public int? battery { get; set; }
     public string supportedThermostatModes { get; set; }

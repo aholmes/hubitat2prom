@@ -164,7 +164,7 @@ public class TestHubitat
                 );
         }
     }
-    
+
     [Fact]
     public async Task DeviceDetails_Returns_DetailSummary()
     {

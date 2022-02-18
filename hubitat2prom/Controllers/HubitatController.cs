@@ -73,7 +73,7 @@ public class HubitatController : ControllerBase
 
             var metricName = Regex.Replace(attribute.name, INVALID_CHARACTER_REGEX, "_");
             var deviceName = Regex.Replace(deviceDetail.label, INVALID_CHARACTER_REGEX, "_");
-            
+
             var rawMetricValue = attribute.currentValue.Value;
             var metricValue = 0d;
             if (rawMetricValue.TryPickT0(out double rawNumericValue, out string rawStringValue))
@@ -129,7 +129,7 @@ public class HubitatController : ControllerBase
             Content = responseContent.ToString()
         };
     }
-    
+
     private bool TryGetPower(string power, out double value)
     {
         if (power == "off")
@@ -164,7 +164,7 @@ public class HubitatController : ControllerBase
         value = -1;
         return false;
     }
-    
+
     private bool TryGetThermostatMode(string thermostatMode, out double value)
     {
         switch(thermostatMode)

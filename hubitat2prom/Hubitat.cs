@@ -58,12 +58,12 @@ public class Hubitat
         var result = await _httpClient.GetFromJsonAsync<HubitatDeviceDetails>(uriBuilder.ToString(), jsonSerializerOptions);
         return result;
     }
-    
+
     public async Task<HubitatDeviceDetailSummary[]> DeviceDetails()
     {
         var uriBuilder = _authenticatedUriBuilder();
         uriBuilder.PathAppend("all");
-        
+
         var jsonSerializerOptions = new JsonSerializerOptions
         {
             NumberHandling = JsonNumberHandling.AllowReadingFromString
