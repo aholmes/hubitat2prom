@@ -46,10 +46,11 @@ public class Hubitat
         return result;
     }
 
-    public async Task<HubitatDeviceDetails> DeviceDetails(HubitatDeviceSummary device)
+    public Task<HubitatDeviceDetails> DeviceDetails(HubitatDeviceSummary device) => DeviceDetails(int.Parse(device.id));
+    public async Task<HubitatDeviceDetails> DeviceDetails(int deviceId)
     {
         var uriBuilder = _authenticatedUriBuilder();
-        uriBuilder.PathAppend(device.id.ToString());
+        uriBuilder.PathAppend(deviceId.ToString());
 
         var jsonSerializerOptions = new JsonSerializerOptions();
         jsonSerializerOptions.Converters.Add(new OneOfDoubleStringNullableJsonConverter());
@@ -69,6 +70,7 @@ public class Hubitat
             NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
         jsonSerializerOptions.Converters.Add(new OneOfDoubleStringNullableJsonConverter());
+        jsonSerializerOptions.Converters.Add(new OneOfStringHubitatDeviceCapabilitiesJsonConverter());
 
         var result = await _httpClient.GetFromJsonAsync<HubitatDeviceDetailSummary[]>(uriBuilder.ToString(), jsonSerializerOptions);
         return result;

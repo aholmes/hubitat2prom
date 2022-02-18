@@ -1,10 +1,41 @@
-using System.Text.Json.Serialization;
+using System.Collections;
+using System.Reflection;
 using OneOf;
+using System.Linq;
+using System.Collections.Generic;
+
+using OneOfDoubleString = OneOf.OneOf<double, string>;
+using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?>;
 
 namespace hubitat2prom.HubitatModels;
 
 public class HubitatDeviceSummaryAttributes
 {
+    public IEnumerator<KeyValuePair<string, AttributeValue?>> GetEnumerator()
+    {
+        return this.GetType().GetProperties(
+              BindingFlags.Public
+            | BindingFlags.Instance
+            | BindingFlags.DeclaredOnly
+        )
+        .Select(propertyInfo =>
+        {
+            AttributeValue? attributeValue = null;
+            var value = propertyInfo.GetValue(this);
+            if (value is string @string) attributeValue = AttributeValue.FromT0(@string);
+            if (value is string[] stringValue) attributeValue = AttributeValue.FromT1(stringValue);
+            if (value is int @int) attributeValue = AttributeValue.FromT2(@int);
+            if (value is double @double) attributeValue = AttributeValue.FromT3(@double);
+            if (value is OneOfDoubleString oneOfDoubleString) attributeValue = AttributeValue.FromT4(oneOfDoubleString);
+
+            return new KeyValuePair<string, AttributeValue?>(
+                propertyInfo.Name,
+                attributeValue
+            );
+        })
+        .GetEnumerator();
+    }
+
     public string dataType { get; set; }
     public string[] values { get; set; }
     public string syncStatus { get; set; }
@@ -36,6 +67,7 @@ public class HubitatDeviceSummaryAttributes
 
     #region Power attributes
     public double? current { get; set; }
+
     public double? currentH { get; set; }
     public double? currentL { get; set; }
     public double? energy { get; set; }

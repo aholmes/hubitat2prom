@@ -11,7 +11,10 @@ public class OneOfDoubleStringJsonConverter : JsonConverter<OneOf<double, string
     {
         if (reader.TokenType == JsonTokenType.String)
         {
-            return reader.GetString();
+            var stringValue = reader.GetString();
+            return double.TryParse(stringValue, out double value)
+                ? value
+                : stringValue;
         }
         else
         {
