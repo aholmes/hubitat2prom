@@ -33,6 +33,7 @@ public static class HubitatPrometheus
             switch(metricName.ToLowerInvariant())
             {
                 case "switch":
+                case "watering":
                     metricValue = rawMetricValue.AsT1 == "on"
                         ? 1
                         : 0;
