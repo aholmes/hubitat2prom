@@ -8,6 +8,7 @@ public class HubitatDeviceMetricDetail
     public string MetricName { get; set; }
     public double MetricValue { get; set; }
     public DateTime MetricTimestamp { get; set; }
-    
-    public override string ToString() => $"{MetricName}{{device_name=\"{DeviceName}\"}} {MetricValue.ToString("0.0##")}".ToLowerInvariant();
+    private string _metricValue => (Math.Truncate(MetricValue * 1000) / 1000).ToString("0.0##");
+
+    public override string ToString() => $"{MetricName}{{device_name=\"{DeviceName}\"}} {_metricValue}".ToLowerInvariant();
 }
