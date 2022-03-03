@@ -1,31 +1,76 @@
 using Xunit;
 
-using hubitat2prom;
 using System.Net.Http;
+using System.Net;
 using System.Threading.Tasks;
 using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
 using System;
+using hubitat2prom.HubitatModels;
+using System.Text.Json;
+using System.IO;
+using System.Reflection;
 
 namespace hubitat2prom.Tests;
 
 public class TestHubitat
 {
-    private IHttpClientFactory _httpClientFactory;
-    public TestHubitat(IHttpClientFactory httpClientFactory)
+    private MockCreator _mockCreator;
+    private HubitatEnv _env;
+
+    public TestHubitat(MockCreator mockCreator)
     {
-        _httpClientFactory = httpClientFactory;
+        _mockCreator = mockCreator;
+        _env = new HubitatEnv(new Uri("http://example.org"), Guid.NewGuid());
     }
+
+    private Lazy<Assembly> _assembly = new Lazy<Assembly>(() => typeof(hubitat2prom.Tests.TestHubitat).Assembly);
+    private string _readResourceJson(string resourceName)
+    {
+        var resourceStream = _assembly.Value.GetManifestResourceStream($"{_assembly.Value.GetName().Name}.Data.{resourceName}.json")!;
+        using (var streamReader = new StreamReader(resourceStream)) return streamReader.ReadToEnd();
+    }
+
+    private string _getDeviceInfoJson() => _readResourceJson("DeviceInfo");
+    private HubitatDeviceSummary[] _getDeviceInfo()
+        => JsonSerializer.Deserialize<HubitatDeviceSummary[]>(_getDeviceInfoJson())!;
+    private IHttpClientFactory _getDeviceInfoIHttpClientFactory()
+        => _mockCreator.GetIHttpClientFactory(
+            new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(_getDeviceInfoJson())
+            });
+
+    private string _getDeviceDetailsJson() => _readResourceJson("DeviceDetails");
+    private HubitatDeviceDetails _getDeviceDetails()
+        => JsonSerializer.Deserialize<HubitatDeviceDetails>(_getDeviceDetailsJson())!;
+    private IHttpClientFactory _getDeviceDetailsIHttpClientFactory() =>
+        _mockCreator.GetIHttpClientFactory(new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(_getDeviceDetailsJson())
+        });
+
+    private string _getAllDeviceDetailsJson() => _readResourceJson("AllDeviceDetails");
+    private HubitatDeviceDetailSummary[] _getAllDeviceDetails()
+        => JsonSerializer.Deserialize<HubitatDeviceDetailSummary[]>(_getAllDeviceDetailsJson())!;
+    private IHttpClientFactory _getAllDeviceDetailsIHttpClientFactory() =>
+        _mockCreator.GetIHttpClientFactory(new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(_getAllDeviceDetailsJson())
+        });
 
     [Fact]
     public async Task Devices_Returns_Summary()
     {
-        var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
+
+        var httpClientFactory = _getDeviceInfoIHttpClientFactory();
+
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
         var devices = await hubitat.Devices();
         Assert.NotEmpty(devices);
-        foreach(var device in devices)
+        foreach (var device in devices)
         {
             Assert.NotEmpty(device.id);
             Assert.NotEmpty(device.name);
@@ -37,11 +82,9 @@ public class TestHubitat
     [Fact]
     public async Task DeviceDetails_Returns_Details()
     {
-        var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
-        var devices = await hubitat.Devices();
-
-        var device = devices.First();
+        var httpClientFactory = _getDeviceDetailsIHttpClientFactory();
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var device = _getDeviceInfo().First();
 
         var details = await hubitat.DeviceDetails(device);
         Assert.NotNull(details);
@@ -52,11 +95,9 @@ public class TestHubitat
     [Fact]
     public async Task DeviceDetails_Attributes_All_Have_Names()
     {
-        var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
-        var devices = await hubitat.Devices();
-
-        var device = devices.First();
+        var httpClientFactory = _getDeviceDetailsIHttpClientFactory();
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var device = _getDeviceInfo().First();
 
         var details = await hubitat.DeviceDetails(device);
         Assert.NotNull(details);
@@ -71,11 +112,9 @@ public class TestHubitat
     [Fact]
     public async Task DeviceDetails_Attributes_All_Have_DataTypes()
     {
-        var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
-        var devices = await hubitat.Devices();
-
-        var device = devices.First();
+        var httpClientFactory = _getDeviceDetailsIHttpClientFactory();
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var device = _getDeviceInfo().First();
 
         var details = await hubitat.DeviceDetails(device);
         Assert.NotNull(details);
@@ -90,11 +129,9 @@ public class TestHubitat
     [Fact]
     public async Task DeviceDetails_Attribute_Numbers_Are_Null_Or_Numeric()
     {
-        var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
-        var devices = await hubitat.Devices();
-
-        var device = devices.First();
+        var httpClientFactory = _getDeviceDetailsIHttpClientFactory();
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var device = _getDeviceInfo().First();
 
         var details = await hubitat.DeviceDetails(device);
         Assert.NotNull(details);
@@ -104,7 +141,7 @@ public class TestHubitat
                      where attribute.dataType == "NUMBER"
                      select attribute.currentValue;
 
-        foreach(var value in values)
+        foreach (var value in values)
         {
             // NUMBER is allowed to be null, so skip it
             if (!value.HasValue) continue;
@@ -116,21 +153,19 @@ public class TestHubitat
     [Fact]
     public async Task DeviceDetails_Attribute_Enums_Are_Arrays()
     {
-        var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
-        var devices = await hubitat.Devices();
-
-        var device = devices.First();
+        var httpClientFactory = _getDeviceDetailsIHttpClientFactory();
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var device = _getDeviceInfo().First();
 
         var details = await hubitat.DeviceDetails(device);
         Assert.NotNull(details);
         Assert.NotEmpty(details.attributes);
 
         var enums = from attribute in details.attributes
-                     where attribute.dataType == "ENUM"
-                     select attribute;
+                    where attribute.dataType == "ENUM"
+                    select attribute;
 
-        foreach(var @enum in enums)
+        foreach (var @enum in enums)
         {
             Assert.NotNull(@enum.values);
             Assert.IsAssignableFrom<Array>(@enum.values);
@@ -140,17 +175,15 @@ public class TestHubitat
     [Fact]
     public async Task DeviceDetails_Capabilities_Are_Strings_Or_Objects()
     {
-        var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
-        var devices = await hubitat.Devices();
-
-        var device = devices.First();
+        var httpClientFactory = _getDeviceDetailsIHttpClientFactory();
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var device = _getDeviceInfo().First();
 
         var details = await hubitat.DeviceDetails(device);
         Assert.NotNull(details);
         Assert.NotEmpty(details.capabilities);
 
-        foreach(var capability in details.capabilities)
+        foreach (var capability in details.capabilities)
         {
             Assert.True(capability.HasValue);
 
@@ -168,11 +201,9 @@ public class TestHubitat
     [Fact]
     public async Task DeviceDetails_Returns_DetailSummary()
     {
-        var env = new HubitatEnv();
-        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, _httpClientFactory);
-        var devices = await hubitat.Devices();
-
-        var device = devices.First();
+        var httpClientFactory = _getAllDeviceDetailsIHttpClientFactory();
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var device = _getDeviceInfo().First();
 
         var details = await hubitat.DeviceDetails();
         Assert.NotNull(details);

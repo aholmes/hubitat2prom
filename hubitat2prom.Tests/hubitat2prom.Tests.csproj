@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="OneOf" Version="3.0.211" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.dependencyinjection" Version="8.3.0" />
@@ -24,6 +25,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\hubitat2prom\hubitat2prom.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Data\**\*.json" />
   </ItemGroup>
 
 </Project>

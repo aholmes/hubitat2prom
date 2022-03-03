@@ -1,0 +1,89 @@
+{
+    "id": "130",
+    "name": "Switch - Kitchen",
+    "label": "Switch - Kitchen",
+    "type": "Zooz ZEN Switch Advanced",
+    "attributes":
+    [
+        {
+            "name": "held",
+            "currentValue": null,
+            "dataType": "NUMBER"
+        },
+        {
+            "name": "pushed",
+            "currentValue": 1,
+            "dataType": "NUMBER"
+        },
+        {
+            "name": "switch",
+            "currentValue": "off",
+            "dataType": "ENUM",
+            "values": [
+                "on",
+                "off"
+            ]
+        },
+        {
+            "name": "numberOfButtons",
+            "currentValue": 10,
+            "dataType": "NUMBER"
+        },
+        {
+            "name": "syncStatus",
+            "currentValue": "1 Pending Changes",
+            "dataType": "STRING"
+        }
+    ],
+    "capabilities":
+    [
+        "Configuration",
+        "Actuator",
+        "Refresh",
+        "HoldableButton",
+        {
+            "attributes": [
+                {
+                    "name": "held",
+                    "dataType": null
+                }
+            ]
+        },
+        "Switch",
+        {
+            "attributes":
+            [
+                {
+                    "name": "switch",
+                    "dataType": null
+                }
+            ]
+        },
+        "PushableButton",
+        {
+            "attributes":
+            [
+                {
+                    "name": "numberOfButtons",
+                    "dataType": null
+                },
+                {
+                    "name": "pushed",
+                    "dataType": null
+                }
+            ]
+        }
+    ],
+    "commands":
+    [
+        "configure",
+        "hold",
+        "off",
+        "on",
+        "paramCommands",
+        "push",
+        "refresh",
+        "setLED",
+        "setLEDMode"
+    ]
+}

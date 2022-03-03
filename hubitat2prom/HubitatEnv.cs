@@ -8,16 +8,29 @@ public class HubitatEnv
     public readonly string HE_METRICS;
 
     public HubitatEnv()
+        : this(
+            Environment.GetEnvironmentVariable("HE_URI"),
+            Environment.GetEnvironmentVariable("HE_TOKEN"),
+            Environment.GetEnvironmentVariable("HE_METRICS")
+        )
+    { }
+
+    public HubitatEnv(string he_uri, string he_token, string metrics = default)
+        : this(
+            _parseHeUri(he_uri),
+            _parseHeToken(he_token),
+            metrics
+        )
+    { }
+
+    public HubitatEnv(Uri he_uri, Guid he_token, string metrics = default)
     {
-        Uri.TryCreate(Environment.GetEnvironmentVariable("HE_URI"), UriKind.Absolute, out HE_URI);
-        Guid.TryParseExact(Environment.GetEnvironmentVariable("HE_TOKEN"), "D", out HE_TOKEN);
-
         string errors = "";
-        if (HE_URI == default) errors += "\n`HE_URI` is empty";
-        if (HE_TOKEN == default) errors += "\n`HE_TOKEN` is empty";
-        if (errors != "") throw new Exception($"Both `HE_URI` and `HE_TOKEN` must be set in the application's environment variables.{errors}");
+        if (he_uri == default) errors += "\n`HE_URI` is empty";
+        if (he_token == default) errors += "\n`HE_TOKEN` is empty";
+        if (errors != "") throw new Exception($"Both `HE_URI` and `HE_TOKEN` must be set in the application's environment variables, or as non-empty parameters to HubitatEnv.{errors}");
 
-        HE_METRICS = Environment.GetEnvironmentVariable("HE_METRICS")
+        var he_metrics = metrics
             ?? String.Join(',', new[] {
                     "battery",
                     "humidity",
@@ -36,5 +49,21 @@ public class HubitatEnv
                     "current",
                     "voltage"
             });
+
+        HE_URI = he_uri;
+        HE_TOKEN = he_token;
+        HE_METRICS = he_metrics;
+    }
+
+    private static Uri _parseHeUri(string he_uri)
+    {
+        Uri.TryCreate(he_uri, UriKind.Absolute, out Uri _he_uri);
+        return _he_uri;
+    }
+
+    private static Guid _parseHeToken(string he_token)
+    {
+        Guid.TryParseExact(he_token, "D", out Guid _he_token);
+        return _he_token;
     }
 }
