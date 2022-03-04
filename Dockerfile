@@ -10,4 +10,4 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
 COPY --from=build-env /app/out .
 
-ENTRYPOINT ["dotnet", "hubitat2prom.dll", "--urls=http://0.0.0.0:80"]
+ENTRYPOINT ["./hubitat2prom", "--urls=http://0.0.0.0:80"]
