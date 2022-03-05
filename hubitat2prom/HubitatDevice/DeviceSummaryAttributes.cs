@@ -85,7 +85,7 @@ public class DeviceSummaryAttributes
     #endregion
 
     #region Dimmer attributes
-    public int? level { get; set; }
+    public double? level { get; set; }
     #endregion
 
     #region Virtual Button attributes
@@ -188,13 +188,13 @@ public class DeviceSummaryAttributes
     #endregion
 
     #region Thermostat attributes
-    public int? battery { get; set; }
+    public double? battery { get; set; }
     public string supportedThermostatModes { get; set; }
     public string thermostatFanMode { get; set; }
     public string thermostatOperatingState { get; set; }
     public double? coolingSetpoint { get; set; }
     public double? thermostatSetpoint { get; set; }
-    public int? humidity { get; set; }
+    public double? humidity { get; set; }
     public double? temperature { get; set; }
     public string supportedThermostatFanModes { get; set; }
     public double? heatingSetpoint { get; set; }
