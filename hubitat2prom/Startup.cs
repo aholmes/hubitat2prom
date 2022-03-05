@@ -32,13 +32,13 @@ public class Startup
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "hubitat2prom", Version = "v1" });
         });
         services.AddHttpClient();
+        services.AddSingleton(typeof(HubitatEnv), provider => HubitatEnv.Instance);
         services.AddScoped(typeof(Hubitat), provider =>
         {
             var env = provider.GetRequiredService<HubitatEnv>();
             var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, provider.GetRequiredService<IHttpClientFactory>());
             return hubitat;
         });
-        services.AddScoped(typeof(HubitatEnv), provider => HubitatEnv.Instance);
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

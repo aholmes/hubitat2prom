@@ -7,7 +7,7 @@ public record HubitatEnv
     public Guid HE_TOKEN { get; init; }
     public string[] HE_METRICS { get; init; }
 
-    public static Lazy<HubitatEnv> _instance = new Lazy<HubitatEnv>();
+    public static Lazy<HubitatEnv> _instance = new Lazy<HubitatEnv>(() => new HubitatEnv());
     public static HubitatEnv Instance => _instance.Value;
 
     private HubitatEnv()
