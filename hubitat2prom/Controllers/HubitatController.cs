@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace hubitat2prom.Controllers;
 
+/// <summary>
+/// The controller for /info and /metrics
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class HubitatController : ControllerBase
@@ -23,6 +26,30 @@ public class HubitatController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Get the current status of the Hubitat hub and data about the exporter.
+    /// </summary>
+    /// <returns>
+    /// A valid response looks something like this:
+    /// <example>
+    /// {
+    ///     "status": {
+    ///         "CONNECTION": "ONLINE"
+    ///     },
+    ///     "config": {
+    ///         "HE_URI": "http://192.168.50.22/apps/api/712/devices",
+    ///          "HE_TOKEN": "00000000-0000-0000-0000-000000000000",
+    ///          "HE_METRICS": [
+    ///              "battery",
+    ///              "humidity",
+    ///              "level",
+    ///              "switch",
+    ///              ...
+    ///          ]
+    ///     }
+    /// }
+    /// </example>
+    /// </returns>
     [HttpGet]
     [Route("/info")]
     public async Task<ExporterInfo> GetInfo()
@@ -45,12 +72,20 @@ public class HubitatController : ControllerBase
         };
     }
 
+    /// <summary>
+    /// Get the Prometheus exporter values for devices configured on the Hubitat hub.
+    /// </summary>
+    /// <returns>
+    /// A valid response looks something like this:
+    /// <example>
+    /// switch{device_name="bathroom"} 0.0
+    /// level{device_name="living_room"} 1.0
+    /// </example>
+    /// </returns>
     [HttpGet]
     [Route("/metrics")]
     public async Task<ContentResult> GetMetrics()
     {
-        var devices = await _hubitat.Devices();
-
         var deviceDetails = await _hubitat.DeviceDetails();
 
         var responseContent = new StringBuilder();
@@ -66,12 +101,19 @@ public class HubitatController : ControllerBase
         };
     }
 
+    /// <summary>
+    /// Get the Prometheus exporter values for a specific device configured on the Hubitat hub.
+    /// </summary>
+    /// <returns>
+    /// A valid response looks something like this:
+    /// <example>
+    /// switch{device_name="bathroom"} 0.0
+    /// </example>
+    /// </returns>
     [HttpGet]
     [Route("/metrics/{deviceId:int}")]
     public async Task<ContentResult> GetMetrics(int deviceId)
     {
-        var devices = await _hubitat.Devices();
-
         var deviceDetails = await _hubitat.DeviceDetails(deviceId);
 
         var responseContent = new StringBuilder();
