@@ -71,7 +71,6 @@ public class DeviceDetailSummary : DeviceSummary
     public DeviceSummaryAttributes attributes { get; set; }
 
     /// <summary>
-    /// 
     /// <example>
     /// "commands": [
     ///     {
