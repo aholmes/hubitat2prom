@@ -5,10 +5,10 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
-using hubitat2prom.HubitatModels;
 using System.Text.Json;
 using System.IO;
 using System.Reflection;
+using hubitat2prom.HubitatDevice;
 
 namespace hubitat2prom.Tests;
 
@@ -31,8 +31,8 @@ public class TestHubitat
     }
 
     private string _getDeviceInfoJson() => _readResourceJson("DeviceInfo");
-    private HubitatDeviceSummary[] _getDeviceInfo()
-        => JsonSerializer.Deserialize<HubitatDeviceSummary[]>(_getDeviceInfoJson())!;
+    private DeviceSummary[] _getDeviceInfo()
+        => JsonSerializer.Deserialize<DeviceSummary[]>(_getDeviceInfoJson())!;
     private IHttpClientFactory _getDeviceInfoIHttpClientFactory()
         => _mockCreator.GetIHttpClientFactory(
             new HttpResponseMessage
@@ -42,8 +42,8 @@ public class TestHubitat
             });
 
     private string _getDeviceDetailsJson() => _readResourceJson("DeviceDetails");
-    private HubitatDeviceDetails _getDeviceDetails()
-        => JsonSerializer.Deserialize<HubitatDeviceDetails>(_getDeviceDetailsJson())!;
+    private DeviceDetails _getDeviceDetails()
+        => JsonSerializer.Deserialize<DeviceDetails>(_getDeviceDetailsJson())!;
     private IHttpClientFactory _getDeviceDetailsIHttpClientFactory() =>
         _mockCreator.GetIHttpClientFactory(new HttpResponseMessage
         {
@@ -52,8 +52,8 @@ public class TestHubitat
         });
 
     private string _getAllDeviceDetailsJson() => _readResourceJson("AllDeviceDetails");
-    private HubitatDeviceDetailSummary[] _getAllDeviceDetails()
-        => JsonSerializer.Deserialize<HubitatDeviceDetailSummary[]>(_getAllDeviceDetailsJson())!;
+    private DeviceDetailSummary[] _getAllDeviceDetails()
+        => JsonSerializer.Deserialize<DeviceDetailSummary[]>(_getAllDeviceDetailsJson())!;
     private IHttpClientFactory _getAllDeviceDetailsIHttpClientFactory() =>
         _mockCreator.GetIHttpClientFactory(new HttpResponseMessage
         {

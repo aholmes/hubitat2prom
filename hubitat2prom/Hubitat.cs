@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using hubitat2prom.HubitatModels;
+using hubitat2prom.HubitatDevice;
 using hubitat2prom.JsonConverters;
 
 namespace hubitat2prom;
@@ -38,16 +38,16 @@ public class Hubitat
         return response.StatusCode;
     }
 
-    public async Task<HubitatDeviceSummary[]> Devices()
+    public async Task<DeviceSummary[]> Devices()
     {
         var uriBuilder = _authenticatedUriBuilder();
 
-        var result = await _httpClient.GetFromJsonAsync<HubitatDeviceSummary[]>(uriBuilder.ToString());
+        var result = await _httpClient.GetFromJsonAsync<DeviceSummary[]>(uriBuilder.ToString());
         return result;
     }
 
-    public Task<HubitatDeviceDetails> DeviceDetails(HubitatDeviceSummary device) => DeviceDetails(int.Parse(device.id));
-    public async Task<HubitatDeviceDetails> DeviceDetails(int deviceId)
+    public Task<DeviceDetails> DeviceDetails(DeviceSummary device) => DeviceDetails(int.Parse(device.id));
+    public async Task<DeviceDetails> DeviceDetails(int deviceId)
     {
         var uriBuilder = _authenticatedUriBuilder();
         uriBuilder.PathAppend(deviceId.ToString());
@@ -56,11 +56,11 @@ public class Hubitat
         jsonSerializerOptions.Converters.Add(new OneOfDoubleStringNullableJsonConverter());
         jsonSerializerOptions.Converters.Add(new OneOfStringHubitatDeviceCapabilitiesJsonConverter());
 
-        var result = await _httpClient.GetFromJsonAsync<HubitatDeviceDetails>(uriBuilder.ToString(), jsonSerializerOptions);
+        var result = await _httpClient.GetFromJsonAsync<DeviceDetails>(uriBuilder.ToString(), jsonSerializerOptions);
         return result;
     }
 
-    public async Task<HubitatDeviceDetailSummary[]> DeviceDetails()
+    public async Task<DeviceDetailSummary[]> DeviceDetails()
     {
         var uriBuilder = _authenticatedUriBuilder();
         uriBuilder.PathAppend("all");
@@ -72,7 +72,7 @@ public class Hubitat
         jsonSerializerOptions.Converters.Add(new OneOfDoubleStringNullableJsonConverter());
         jsonSerializerOptions.Converters.Add(new OneOfStringHubitatDeviceCapabilitiesJsonConverter());
 
-        var result = await _httpClient.GetFromJsonAsync<HubitatDeviceDetailSummary[]>(uriBuilder.ToString(), jsonSerializerOptions);
+        var result = await _httpClient.GetFromJsonAsync<DeviceDetailSummary[]>(uriBuilder.ToString(), jsonSerializerOptions);
         return result;
     }
 }

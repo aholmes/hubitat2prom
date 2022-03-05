@@ -1,8 +1,8 @@
 using System;
 
-namespace hubitat2prom.HubitatModels;
+namespace hubitat2prom.HubitatDevice;
 
-public class HubitatDeviceDetailSummary : HubitatDeviceSummary
+public class DeviceDetailSummary : DeviceSummary
 {
     // FIXME this is some kind of datetime
     public string date { get; set; }
@@ -11,6 +11,6 @@ public class HubitatDeviceDetailSummary : HubitatDeviceSummary
     // TODO what is manufacturer
     public object manufacturer { get; set; }
     public string[] capabilities { get; set; }
-    public HubitatDeviceSummaryAttributes attributes { get; set; }
-    public HubitatDeviceSummaryCommands[] commands { get; set; }
+    public DeviceSummaryAttributes attributes { get; set; }
+    public DeviceSummaryCommands[] commands { get; set; }
 }

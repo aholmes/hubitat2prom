@@ -1,8 +1,8 @@
 using OneOf;
 
-namespace hubitat2prom.HubitatModels;
+namespace hubitat2prom.HubitatDevice;
 
-public class HubitatDeviceAttributes
+public class DeviceAttributes
 {
     public string name { get; set; }
     public OneOf<double, string>? currentValue { get; set; }

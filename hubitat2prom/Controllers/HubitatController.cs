@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using hubitat2prom.PrometheusModels;
+using hubitat2prom.PrometheusExporter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -21,36 +17,32 @@ public class HubitatController : ControllerBase
     private readonly ILogger<HubitatController> _logger;
     private readonly HubitatEnv _env;
     private readonly Hubitat _hubitat;
-    private readonly string[] _collectedMetrics;
 
     public HubitatController(Hubitat hubitat, HubitatEnv env, ILogger<HubitatController> logger)
     {
         _hubitat = hubitat;
         _env = env;
         _logger = logger;
-
-        _collectedMetrics = _env.HE_METRICS.Split(',');
     }
 
     [HttpGet]
     [Route("/info")]
-    public async Task<PrometheusExporterInfo> GetInfo()
+    public async Task<ExporterInfo> GetInfo()
     {
         var statusCode = await _hubitat.StatusCheck();
 
-        return new PrometheusExporterInfo
+        return new ExporterInfo
         {
-            status = new PrometheusExporterStatus
+            status = new ExporterStatus
             {
                 CONNECTION = statusCode == HttpStatusCode.OK
                     ? "ONLINE"
                     : "OFFLINE"
             },
-            config = new PrometheusExporterConfig
+            config = HubitatEnv.Instance
+            with
             {
-                HE_URI = _env.HE_URI,
-                HE_TOKEN = Guid.Empty,
-                HE_METRICS = _collectedMetrics
+                HE_TOKEN = Guid.Empty
             }
         };
     }
@@ -64,8 +56,8 @@ public class HubitatController : ControllerBase
         var deviceDetails = await _hubitat.DeviceDetails();
 
         var responseContent = new StringBuilder();
-        var deviceAttributes = HubitatPrometheus.GetPrometheusDeviceMetrics(deviceDetails, _collectedMetrics);
-        foreach(var deviceAttribute in deviceAttributes)
+        var deviceAttributes = HubitatPrometheusMetricConverter.GetPrometheusDeviceMetrics(deviceDetails, HubitatEnv.Instance.HE_METRICS);
+        foreach (var deviceAttribute in deviceAttributes)
         {
             responseContent.AppendLine(deviceAttribute.ToString());
         }
@@ -75,7 +67,7 @@ public class HubitatController : ControllerBase
             Content = responseContent.ToString()
         };
     }
-    
+
     [HttpGet]
     [Route("/metrics/{deviceId:int}")]
     public async Task<ContentResult> GetMetrics(int deviceId)
@@ -85,8 +77,8 @@ public class HubitatController : ControllerBase
         var deviceDetails = await _hubitat.DeviceDetails(deviceId);
 
         var responseContent = new StringBuilder();
-        var deviceAttributes = HubitatPrometheus.GetPrometheusDeviceMetrics(new[] { deviceDetails }, _collectedMetrics);
-        foreach(var deviceAttribute in deviceAttributes)
+        var deviceAttributes = HubitatPrometheusMetricConverter.GetPrometheusDeviceMetrics(new[] { deviceDetails }, HubitatEnv.Instance.HE_METRICS);
+        foreach (var deviceAttribute in deviceAttributes)
         {
             responseContent.AppendLine(deviceAttribute.ToString());
         }

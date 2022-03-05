@@ -38,7 +38,7 @@ public class Startup
             var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, provider.GetRequiredService<IHttpClientFactory>());
             return hubitat;
         });
-        services.AddScoped(typeof(HubitatEnv));
+        services.AddScoped(typeof(HubitatEnv), provider => HubitatEnv.Instance);
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

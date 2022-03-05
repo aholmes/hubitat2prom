@@ -1,8 +1,8 @@
 using System;
 
-namespace hubitat2prom.PrometheusModels;
+namespace hubitat2prom;
 
-public class PrometheusExporterConfig
+public class HubitatConfig
 {
     public Uri HE_URI { get; set; }
     public Guid HE_TOKEN { get; set; }

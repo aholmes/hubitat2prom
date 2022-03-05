@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using OneOfDoubleString = OneOf.OneOf<double, string>;
 using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?>;
 
-namespace hubitat2prom.HubitatModels;
+namespace hubitat2prom.HubitatDevice;
 
-public class HubitatDeviceSummaryAttributes
+public class DeviceSummaryAttributes
 {
     public IEnumerator<KeyValuePair<string, AttributeValue?>> GetEnumerator()
     {
