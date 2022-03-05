@@ -8,8 +8,37 @@ using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<
 
 namespace hubitat2prom.HubitatDevice;
 
+/// <summary>
+/// The values of attributes for a device when querying for metrics of all devices.
+/// This comes from querying for metrics at a URL like `/apps/api/712/devices/all`
+///
+/// Instances of this class are iterable,
+/// and will return the name and value of
+/// each property in the class instance.
+///
+/// This class is a collection of currently known attributes and their
+/// presumed types. These may be wrong on occassion, and there are additional
+/// attributes that I have not added because I am not aware of them.
+/// More properties can be added to collect those metrics.
+/// 
+/// <example>
+/// {
+///     "dataType": "ENUM",
+///     "values": [
+///         "on",
+///         "off"
+///     ],
+///     "numberOfButtons": "10",
+///     "released": null,
+///     "switch": "off"
+/// }
+/// </example>
+/// </summary>
 public class DeviceSummaryAttributes
 {
+    /// <summary>
+    /// Return the name and value of each property in this class instance.
+    /// </summary>
     public IEnumerator<KeyValuePair<string, AttributeValue?>> GetEnumerator()
     {
         return this.GetType().GetProperties(
@@ -47,7 +76,6 @@ public class DeviceSummaryAttributes
     #endregion
 
     #region Switch attributes
-    //[JsonPropertyName("switch")]
     public string @switch { get; set; }
     public int? held { get; set; }
     public int? numberOfButtons { get; set; }
