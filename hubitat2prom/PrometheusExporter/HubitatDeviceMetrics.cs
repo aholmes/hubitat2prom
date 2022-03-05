@@ -11,6 +11,13 @@ public static class HubitatDeviceMetrics
     private const string INVALID_CHARACTER_REGEX = "[() -]";
     private static Regex _invalidCharacterRegex = new Regex(INVALID_CHARACTER_REGEX, RegexOptions.Compiled);
 
+    /// <summary>
+    /// Convert the metrics of Hubitat device details from a single device query,
+    /// e.g., `/apps/api/712/devices/130`, into Prometheus exporter metrics.
+    /// </summary>
+    /// <param name="hubitatDeviceDetails"></param>
+    /// <param name="collectedMetrics"></param>
+    /// <returns></returns>
     public static IEnumerable<ExporterHubitatDeviceMetric> Export(IEnumerable<DeviceDetails> hubitatDeviceDetails, string[] collectedMetrics)
     {
         foreach (var deviceDetail in hubitatDeviceDetails)
@@ -69,6 +76,13 @@ public static class HubitatDeviceMetrics
             }
     }
 
+    /// <summary>
+    /// Convert the metrics of Hubitat device details from a query for all devices,
+    /// e.g., `/apps/api/712/devices/all`, into Prometheus exporter metrics.
+    /// </summary>
+    /// <param name="hubitatDeviceDetails"></param>
+    /// <param name="collectedMetrics"></param>
+    /// <returns></returns>
     public static IEnumerable<ExporterHubitatDeviceMetric> Export(IEnumerable<DeviceDetailSummary> hubitatDeviceDetails, string[] collectedMetrics)
     {
         foreach (var deviceDetail in hubitatDeviceDetails)
