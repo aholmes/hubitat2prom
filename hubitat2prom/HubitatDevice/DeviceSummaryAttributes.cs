@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Reflection;
 using OneOf;
 using System.Linq;

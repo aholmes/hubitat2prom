@@ -1,12 +1,12 @@
 using System;
 
-namespace hubitat2prom.PrometheusModels;
+namespace hubitat2prom.PrometheusExporter;
 
 /// <summary>
 /// Contains the information Prometheus is able to digest.
 /// Serializes to a Prometheus metric line.
 /// </summary>
-public class HubitatDeviceMetricValue
+public class ExporterHubitatDeviceMetric
 {
     /// <summary>
     /// The name of the device configured on a Hubitat,

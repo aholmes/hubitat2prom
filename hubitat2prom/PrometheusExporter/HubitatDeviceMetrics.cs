@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using hubitat2prom.HubitatDevice;
-using hubitat2prom.PrometheusModels;
 
-namespace hubitat2prom;
+namespace hubitat2prom.PrometheusExporter;
 
-public static class HubitatPrometheusMetricConverter
+public static class HubitatDeviceMetrics
 {
-    const string INVALID_CHARACTER_REGEX = "[() -]";
+    private const string INVALID_CHARACTER_REGEX = "[() -]";
+    private static Regex _invalidCharacterRegex = new Regex(INVALID_CHARACTER_REGEX, RegexOptions.Compiled);
 
-    public static IEnumerable<HubitatDeviceMetricValue> GetPrometheusDeviceMetrics(IEnumerable<DeviceDetails> hubitatDeviceDetails, string[] collectedMetrics)
+    public static IEnumerable<ExporterHubitatDeviceMetric> Export(IEnumerable<DeviceDetails> hubitatDeviceDetails, string[] collectedMetrics)
     {
         foreach (var deviceDetail in hubitatDeviceDetails)
             foreach (var attribute in deviceDetail.attributes)
@@ -19,8 +19,8 @@ public static class HubitatPrometheusMetricConverter
                 if (!collectedMetrics.Contains(attribute.name)) continue;
                 if (!attribute.currentValue.HasValue) continue;
 
-                var metricName = Regex.Replace(attribute.name, INVALID_CHARACTER_REGEX, "_");
-                var deviceName = Regex.Replace(deviceDetail.label, INVALID_CHARACTER_REGEX, "_");
+                var metricName = _invalidCharacterRegex.Replace(attribute.name, "_");
+                var deviceName = _invalidCharacterRegex.Replace(deviceDetail.label, "_");
 
                 var rawMetricValue = attribute.currentValue.Value;
                 var metricValue = 0d;
@@ -59,7 +59,7 @@ public static class HubitatPrometheusMetricConverter
                         break;
                 }
 
-                yield return new HubitatDeviceMetricValue
+                yield return new ExporterHubitatDeviceMetric
                 {
                     DeviceName = deviceName,
                     MetricName = metricName,
@@ -69,7 +69,7 @@ public static class HubitatPrometheusMetricConverter
             }
     }
 
-    public static IEnumerable<HubitatDeviceMetricValue> GetPrometheusDeviceMetrics(IEnumerable<DeviceDetailSummary> hubitatDeviceDetails, string[] collectedMetrics)
+    public static IEnumerable<ExporterHubitatDeviceMetric> Export(IEnumerable<DeviceDetailSummary> hubitatDeviceDetails, string[] collectedMetrics)
     {
         foreach (var deviceDetail in hubitatDeviceDetails)
             foreach (var attribute in deviceDetail.attributes)
@@ -107,7 +107,7 @@ public static class HubitatPrometheusMetricConverter
                         : 0
                 );
 
-                yield return new HubitatDeviceMetricValue
+                yield return new ExporterHubitatDeviceMetric
                 {
                     DeviceName = deviceName,
                     MetricName = metricName,

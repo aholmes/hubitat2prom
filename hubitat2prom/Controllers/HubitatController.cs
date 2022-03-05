@@ -12,8 +12,6 @@ namespace hubitat2prom.Controllers;
 [Route("[controller]")]
 public class HubitatController : ControllerBase
 {
-    const string INVALID_CHARACTER_REGEX = "[() -]";
-
     private readonly ILogger<HubitatController> _logger;
     private readonly HubitatEnv _env;
     private readonly Hubitat _hubitat;
@@ -33,7 +31,7 @@ public class HubitatController : ControllerBase
 
         return new ExporterInfo
         {
-            status = new ExporterStatus
+            status = new ExporterInfoStatus
             {
                 CONNECTION = statusCode == HttpStatusCode.OK
                     ? "ONLINE"
@@ -56,7 +54,7 @@ public class HubitatController : ControllerBase
         var deviceDetails = await _hubitat.DeviceDetails();
 
         var responseContent = new StringBuilder();
-        var deviceAttributes = HubitatPrometheusMetricConverter.GetPrometheusDeviceMetrics(deviceDetails, HubitatEnv.Instance.HE_METRICS);
+        var deviceAttributes = HubitatDeviceMetrics.Export(deviceDetails, HubitatEnv.Instance.HE_METRICS);
         foreach (var deviceAttribute in deviceAttributes)
         {
             responseContent.AppendLine(deviceAttribute.ToString());
@@ -77,7 +75,7 @@ public class HubitatController : ControllerBase
         var deviceDetails = await _hubitat.DeviceDetails(deviceId);
 
         var responseContent = new StringBuilder();
-        var deviceAttributes = HubitatPrometheusMetricConverter.GetPrometheusDeviceMetrics(new[] { deviceDetails }, HubitatEnv.Instance.HE_METRICS);
+        var deviceAttributes = HubitatDeviceMetrics.Export(new[] { deviceDetails }, HubitatEnv.Instance.HE_METRICS);
         foreach (var deviceAttribute in deviceAttributes)
         {
             responseContent.AppendLine(deviceAttribute.ToString());

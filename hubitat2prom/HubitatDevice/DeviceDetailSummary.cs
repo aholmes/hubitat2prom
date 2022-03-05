@@ -1,5 +1,3 @@
-using System;
-
 namespace hubitat2prom.HubitatDevice;
 
 public class DeviceDetailSummary : DeviceSummary
