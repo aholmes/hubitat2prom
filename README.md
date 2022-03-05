@@ -45,9 +45,9 @@ You will need to provide the same environment variables, but the syntax is diffe
 ```bash
 docker run\
     -p 8080:80\
-    aholmes0/hubitat2prom:v1.0.1\
     -e "HE_URI=your-uri"\
-    -e "HE_TOKEN=your-token"
+    -e "HE_TOKEN=your-token"\
+    aholmes0/hubitat2prom:v1.0.1
 ```
 
 ## Build the Docker Image
@@ -61,7 +61,7 @@ Use a command similar to the one used for [Using Docker](#using-docker), but use
 ```bash
 docker run\
     -p 8080:80\
-    hubitat2prom\
     -e "HE_URI=your-uri"\
-    -e "HE_TOKEN=your-token"
+    -e "HE_TOKEN=your-token"\
+    hubitat2prom
 ```
