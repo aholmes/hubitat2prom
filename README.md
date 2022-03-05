@@ -45,7 +45,7 @@ You will need to provide the same environment variables, but the syntax is diffe
 ```bash
 docker run\
     -p 8080:80\
-    aholmes0/hubitat2prom:v1.0.0\
+    aholmes0/hubitat2prom:v1.0.1\
     -e "HE_URI=your-uri"\
     -e "HE_TOKEN=your-token"
 ```
