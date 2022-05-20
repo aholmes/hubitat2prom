@@ -38,8 +38,8 @@ public class ExporterHubitatDeviceMetric
     /// Formats the line Prometheus needs to ingest a metric.
     /// </summary>
     /// <returns>
-    /// This looks like, e.g., `switch{device_name="light_switch"} 1.0`
+    /// This looks like, e.g., `hubitat_switch{device_name="light_switch"} 1.0`
     /// </returns>
 
-    public override string ToString() => $"{MetricName}{{device_name=\"{DeviceName}\"}} {_metricValue}".ToLowerInvariant();
+    public override string ToString() => $"hubitat_{MetricName}{{device_name=\"{DeviceName}\"}} {_metricValue}".ToLowerInvariant();
 }
