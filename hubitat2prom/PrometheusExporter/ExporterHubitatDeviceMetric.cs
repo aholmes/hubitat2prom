@@ -41,5 +41,5 @@ public class ExporterHubitatDeviceMetric
     /// This looks like, e.g., `switch{device_name="light_switch"} 1.0`
     /// </returns>
 
-    public override string ToString() => $"{MetricName}{{device_name=\"{DeviceName}\"}} {_metricValue}".ToLowerInvariant();
+    public override string ToString() => $"hubitat_{MetricName}{{device_name=\"{DeviceName}\"}} {_metricValue}".ToLowerInvariant();
 }
