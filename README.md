@@ -47,7 +47,7 @@ docker run\
     -p 8080:80\
     -e "HE_URI=your-uri"\
     -e "HE_TOKEN=your-token"\
-    aholmes0/hubitat2prom:v1.0.1
+    aholmes0/hubitat2prom:latest
 ```
 
 ## Build the Docker Image
