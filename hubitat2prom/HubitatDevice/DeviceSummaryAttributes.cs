@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 using OneOfDoubleString = OneOf.OneOf<double, string>;
 using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?>;
+using System.Dynamic;
+using System;
 
 namespace hubitat2prom.HubitatDevice;
 
@@ -34,20 +36,18 @@ namespace hubitat2prom.HubitatDevice;
 /// }
 /// </example>
 /// </summary>
-public class DeviceSummaryAttributes
+//[Serializable]
+public class DeviceSummaryAttributes : DynamicObject
 {
     /// <summary>
     /// Return the name and value of each property in this class instance.
     /// </summary>
     public IEnumerator<KeyValuePair<string, AttributeValue?>> GetEnumerator()
     {
-        return this.GetType().GetProperties(
-              BindingFlags.Public
-            | BindingFlags.Instance
-            | BindingFlags.DeclaredOnly
-        )
-        .Select(propertyInfo =>
+        return typedProperties.Select(propertyInfoEntry =>
         {
+            var propertyName = propertyInfoEntry.Key;
+            var propertyInfo = propertyInfoEntry.Value;
             AttributeValue? attributeValue = null;
             var value = propertyInfo.GetValue(this);
             if (value is string @string) attributeValue = AttributeValue.FromT0(@string);
@@ -57,11 +57,62 @@ public class DeviceSummaryAttributes
             if (value is OneOfDoubleString oneOfDoubleString) attributeValue = AttributeValue.FromT4(oneOfDoubleString);
 
             return new KeyValuePair<string, AttributeValue?>(
-                propertyInfo.Name,
+                propertyName,
                 attributeValue
             );
         })
         .GetEnumerator();
+    }
+
+    private Lazy<Dictionary<string, PropertyInfo>> typedPropertiesLazy
+        => new Lazy<Dictionary<string, PropertyInfo>>(
+            () => this.GetType().GetProperties(
+                  BindingFlags.Public
+                | BindingFlags.Instance
+                | BindingFlags.DeclaredOnly
+            ).ToDictionary(propertyInfo => propertyInfo.Name)
+        );
+    private Dictionary<string, PropertyInfo> typedProperties => typedPropertiesLazy.Value;
+
+    private Dictionary<string, object> dynamicProperties = new Dictionary<string, object>();
+
+    public override bool TryGetMember(GetMemberBinder binder, out object result)
+    {
+        if (typedProperties.ContainsKey(binder.Name))
+        {
+            result = typedProperties[binder.Name];
+            return true;
+        }
+        else
+        {
+            return dynamicProperties.TryGetValue(binder.Name, out result);
+        }
+    }
+
+    public override bool TrySetMember(SetMemberBinder binder, object value)
+    {
+        if (typedProperties.ContainsKey(binder.Name))
+        {
+            typedProperties[binder.Name].SetValue(this, value);
+        }
+        else
+        {
+            dynamicProperties[binder.Name] = value;
+        }
+        return true;
+    }
+
+    public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
+    {
+        result = null;
+        if (!dynamicProperties.ContainsKey(binder.Name) && !typedProperties.ContainsKey(binder.Name)) return false;
+
+        var memberInfo = this.GetType().GetMember(binder.Name, BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance);
+        if (memberInfo == null || memberInfo.Length == 0) return false;
+
+        var method = memberInfo[0] as MethodInfo;
+        result = method.Invoke(this, args);
+        return true;
     }
 
     public string dataType { get; set; }
