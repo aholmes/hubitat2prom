@@ -53,6 +53,8 @@ public class Hubitat
         uriBuilder.PathAppend(deviceId.ToString());
 
         var jsonSerializerOptions = new JsonSerializerOptions();
+        jsonSerializerOptions.Converters.Add(new DynamicJsonConverter());
+        jsonSerializerOptions.Converters.Add(new DeviceSummaryAttributesDynamicJsonConverter());
         jsonSerializerOptions.Converters.Add(new OneOfDoubleStringNullableJsonConverter());
         jsonSerializerOptions.Converters.Add(new OneOfStringHubitatDeviceCapabilitiesJsonConverter());
 
@@ -67,8 +69,10 @@ public class Hubitat
 
         var jsonSerializerOptions = new JsonSerializerOptions
         {
-            NumberHandling = JsonNumberHandling.AllowReadingFromString
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
         };
+        jsonSerializerOptions.Converters.Add(new DynamicJsonConverter());
+        jsonSerializerOptions.Converters.Add(new DeviceSummaryAttributesDynamicJsonConverter());
         jsonSerializerOptions.Converters.Add(new OneOfDoubleStringNullableJsonConverter());
         jsonSerializerOptions.Converters.Add(new OneOfStringHubitatDeviceCapabilitiesJsonConverter());
 

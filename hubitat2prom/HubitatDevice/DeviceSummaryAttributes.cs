@@ -36,7 +36,7 @@ namespace hubitat2prom.HubitatDevice;
 /// }
 /// </example>
 /// </summary>
-//[Serializable]
+[Serializable]
 public class DeviceSummaryAttributes : DynamicObject
 {
     /// <summary>
@@ -44,12 +44,12 @@ public class DeviceSummaryAttributes : DynamicObject
     /// </summary>
     public IEnumerator<KeyValuePair<string, AttributeValue?>> GetEnumerator()
     {
-        return typedProperties.Select(propertyInfoEntry =>
+        return properties.Select(propertyInfoEntry =>
         {
             var propertyName = propertyInfoEntry.Key;
             var propertyInfo = propertyInfoEntry.Value;
             AttributeValue? attributeValue = null;
-            var value = propertyInfo.GetValue(this);
+            var value = (propertyInfo as PropertyInfo)?.GetValue(this) ?? propertyInfo;
             if (value is string @string) attributeValue = AttributeValue.FromT0(@string);
             if (value is string[] stringValue) attributeValue = AttributeValue.FromT1(stringValue);
             if (value is int @int) attributeValue = AttributeValue.FromT2(@int);
@@ -73,8 +73,14 @@ public class DeviceSummaryAttributes : DynamicObject
             ).ToDictionary(propertyInfo => propertyInfo.Name)
         );
     private Dictionary<string, PropertyInfo> typedProperties => typedPropertiesLazy.Value;
+    private Lazy<Dictionary<string, object>> typedPropertiesAsObjectDictionary
+        => new Lazy<Dictionary<string, object>>(() => typedProperties.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value));
+
 
     private Dictionary<string, object> dynamicProperties = new Dictionary<string, object>();
+
+    private IEnumerable<KeyValuePair<string, object>> properties
+        => typedPropertiesAsObjectDictionary.Value.Concat(dynamicProperties);
 
     public override bool TryGetMember(GetMemberBinder binder, out object result)
     {
@@ -93,7 +99,14 @@ public class DeviceSummaryAttributes : DynamicObject
     {
         if (typedProperties.ContainsKey(binder.Name))
         {
-            typedProperties[binder.Name].SetValue(this, value);
+            try
+            {
+                typedProperties[binder.Name].SetValue(this, value);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+            }
         }
         else
         {
