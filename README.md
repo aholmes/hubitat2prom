@@ -65,3 +65,57 @@ docker run\
     -e "HE_TOKEN=your-token"\
     hubitat2prom
 ```
+
+# Internals
+
+## Mapped values
+
+Because Prometheus scrapes only scalar values, some enum/string "attribute" values coming from Hubitat devices are mapped to corresponding scalar values. The values chosen represent the same order that the Maker API reports them. In cases where an unknown attribute name is parsed, the value `0` is returned.
+
+
+If you would like to chart these values in an order other than the default, a PromQL query similar to the following will map one scalar value to another.
+
+```
+((thermostatoperatingstate == 0) + 4) # map heating to 4
+or ((thermostatoperatingstate == 1) + 0) # map pending cool to 1
+or ((thermostatoperatingstate == 2) + 1) # map pending heat to 3
+or ((thermostatoperatingstate == 3) + 3) # map vent economizer to 6
+or ((thermostatoperatingstate == 4) - 4) # map idle to 0
+or ((thermostatoperatingstate == 5) - 3) # map cooling to 2
+or ((thermostatoperatingstate == 6) - 1) # map fan only to 5
+```
+
+### Power and Switch
+
+The [`power`](https://github.com/aholmes/hubitat2prom/blob/6aab4b3b01621fa7c8d5e906883b1a0eb0bce733/hubitat2prom/PrometheusExporter/HubitatDeviceMetrics.cs#L134-L150) and [`switch`](https://github.com/aholmes/hubitat2prom/blob/6aab4b3b01621fa7c8d5e906883b1a0eb0bce733/hubitat2prom/PrometheusExporter/HubitatDeviceMetrics.cs#L106) attributes.
+
+```
+"off" = 0
+"on" = 1
+```
+
+### Thermostat mode
+
+The [`thermostatMode`](https://github.com/aholmes/hubitat2prom/blob/6aab4b3b01621fa7c8d5e906883b1a0eb0bce733/hubitat2prom/PrometheusExporter/HubitatDeviceMetrics.cs#L169-L182) attribute.
+
+```
+"auto" = 0
+"off" = 1
+"heat" = 2
+"emergency heat" = 3
+"cool" = 4
+```
+
+### Thermostat operating state
+
+The [`thermostatOperatingState`](https://github.com/aholmes/hubitat2prom/blob/6aab4b3b01621fa7c8d5e906883b1a0eb0bce733/hubitat2prom/PrometheusExporter/HubitatDeviceMetrics.cs#L152-L167) attribute.
+
+```
+"heating" = 0
+"pending cool" = 1
+"pending heat" = 2
+"vent economizer" = 3
+"idle" = 4
+"cooling" = 5
+"fan only" = 6
+```
