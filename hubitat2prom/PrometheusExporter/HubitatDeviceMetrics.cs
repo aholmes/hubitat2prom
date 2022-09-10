@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using hubitat2prom.HubitatDevice;
+using hubitat2prom.PrometheusExporter.DeviceTypes;
+using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?>;
 
 namespace hubitat2prom.PrometheusExporter;
 
@@ -20,60 +22,47 @@ public static class HubitatDeviceMetrics
     /// <returns></returns>
     public static IEnumerable<ExporterHubitatDeviceMetric> Export(IEnumerable<DeviceDetails> hubitatDeviceDetails, string[] collectedMetrics)
     {
-        foreach (var deviceDetail in hubitatDeviceDetails)
-            foreach (var attribute in deviceDetail.attributes)
+        return hubitatDeviceDetails.SelectMany(deviceDetail =>
+        {
+            var firstAttribute = deviceDetail.attributes.First();
+            var deviceSummaryAttributes = new DeviceSummaryAttributes
             {
-                if (!collectedMetrics.Contains(attribute.name)) continue;
-                if (!attribute.currentValue.HasValue) continue;
+                dataType = firstAttribute.dataType,
+                values = firstAttribute.values
+            };
+            var deviceSummaryAttributesDict = (IDictionary<string, AttributeValue?>)deviceSummaryAttributes;
+            foreach (var deviceAttribute in deviceDetail.attributes)
+            {
+                if (!deviceAttribute.currentValue.HasValue) continue;
 
-                var metricName = _invalidCharacterRegex.Replace(attribute.name, "_");
-                var deviceName = _invalidCharacterRegex.Replace(deviceDetail.label, "_");
-
-                var rawMetricValue = attribute.currentValue.Value;
-                var metricValue = 0d;
-                var value = 0d;
-                if (rawMetricValue.TryPickT0(out double rawNumericValue, out string rawStringValue))
-                {
-                    metricValue = rawNumericValue;
-                }
-
-                switch (metricName.ToLowerInvariant())
-                {
-                    case "switch":
-                    case "watering":
-                        metricValue = rawMetricValue.AsT1 == "on"
-                            ? 1
-                            : 0;
-                        break;
-                    case "power":
-                        // the value of power is either "on," "off," or a double.
-                        if (rawMetricValue.IsT1 && TryGetPower(rawStringValue, out value))
-                        {
-                            metricValue = value;
-                        }
-                        break;
-                    case "thermostatoperatingstate":
-                        if (TryGetThermostatOperatingState(rawMetricValue.AsT1, out value))
-                        {
-                            metricValue = value;
-                        }
-                        break;
-                    case "thermostatmode":
-                        if (TryGetThermostatMode(rawMetricValue.AsT1, out value))
-                        {
-                            metricValue = value;
-                        }
-                        break;
-                }
-
-                yield return new ExporterHubitatDeviceMetric
-                {
-                    DeviceName = deviceName,
-                    MetricName = metricName,
-                    MetricValue = metricValue,
-                    MetricTimestamp = DateTime.UnixEpoch
-                };
+                deviceSummaryAttributesDict.Add(deviceAttribute.name, deviceAttribute.currentValue);
             }
+
+            var deviceDetailSummary = new DeviceDetailSummary
+            {
+                id = deviceDetail.id,
+                label = deviceDetail.label,
+                name = deviceDetail.name,
+                @type = deviceDetail.type,
+                attributes = deviceSummaryAttributes,
+                capabilities = deviceDetail.capabilities.SelectMany(capability
+                    => capability.HasValue
+                        ? capability.Value.Match(
+                            @string => new[] { @string },
+                            deviceCapabilities => deviceCapabilities.attributes.Select(
+                                capabilityAttribute => capabilityAttribute.name
+                            )
+                        )
+                        : new string[0]
+                    ).ToArray(),
+                    commands = deviceDetail.commands.Select(command => new DeviceSummaryCommands
+                    {
+                        command = command
+                    }).ToArray()
+            };
+            var deviceType = DeviceType.CreateDeviceType(deviceDetail);
+            return ExtractAttributeMetrics(deviceType, deviceDetailSummary, collectedMetrics);
+        });
     }
 
     /// <summary>
@@ -85,50 +74,11 @@ public static class HubitatDeviceMetrics
     /// <returns></returns>
     public static IEnumerable<ExporterHubitatDeviceMetric> Export(IEnumerable<DeviceDetailSummary> hubitatDeviceDetails, string[] collectedMetrics)
     {
-        foreach (var deviceDetail in hubitatDeviceDetails)
-            foreach (var attribute in deviceDetail.attributes)
-            {
-                var attributeName = attribute.Key;
-                var attributeValue = attribute.Value;
-
-                if (!collectedMetrics.Contains(attributeName)) continue;
-                if (!attributeValue.HasValue) continue;
-
-                var metricName = Regex.Replace(attributeName, INVALID_CHARACTER_REGEX, "_");
-                var deviceName = Regex.Replace(deviceDetail.label, INVALID_CHARACTER_REGEX, "_");
-
-                var rawMetricValue = attributeValue.Value;
-                double value;
-                var metricValue = rawMetricValue.Match(
-                    @string =>
-                    {
-                        var name = attributeName.ToLowerInvariant();
-                        if (name == "switch") return @string == "on" ? 1 : 0;
-                        if (name == "power" && TryGetPower(@string, out value)) return value;
-                        if (name == "thermostatoperatingstate" && TryGetThermostatOperatingState(@string, out value)) return value;
-                        if (name == "thermostatmode" && TryGetThermostatMode(@string, out value)) return value;
-
-                        return 0d;
-                    },
-                    stringArray => 0d,
-                    nullableInt => nullableInt ?? 0d,
-                    nullableDouble => nullableDouble ?? 0d,
-                    nullableOneOfDoubleString => nullableOneOfDoubleString.HasValue
-                        ? nullableOneOfDoubleString.Value.Match(
-                            @double => @double,
-                            @string => 0
-                            )
-                        : 0
-                );
-
-                yield return new ExporterHubitatDeviceMetric
-                {
-                    DeviceName = deviceName,
-                    MetricName = metricName,
-                    MetricValue = metricValue,
-                    MetricTimestamp = DateTime.UnixEpoch
-                };
-            }
+        return hubitatDeviceDetails.SelectMany(deviceDetail =>
+        {
+            var deviceType = DeviceType.CreateDeviceType(deviceDetail);
+            return ExtractAttributeMetrics(deviceType, deviceDetail, collectedMetrics);
+        });
     }
 
     private static bool TryGetPower(string power, out double value)
@@ -179,5 +129,30 @@ public static class HubitatDeviceMetrics
 
         value = -1;
         return false;
+    }
+    
+    private static IEnumerable<ExporterHubitatDeviceMetric> ExtractAttributeMetrics(DeviceType deviceType, DeviceDetailSummary deviceDetail, string[] collectedMetrics)
+    {
+        foreach (var attribute in deviceDetail.attributes)
+        {
+            var attributeName = attribute.Key;
+            var attributeValue = attribute.Value;
+
+            if (!collectedMetrics.Contains(attributeName)) continue;
+            if (!attributeValue.HasValue) continue;
+
+            var metricName = Regex.Replace(attributeName, INVALID_CHARACTER_REGEX, "_");
+            var deviceName = Regex.Replace(deviceDetail.label, INVALID_CHARACTER_REGEX, "_");
+
+            var metricValue = deviceType.ExtractMetric(attributeName, attributeValue.Value);
+
+            yield return new ExporterHubitatDeviceMetric
+            {
+                DeviceName = deviceName,
+                MetricName = metricName,
+                MetricValue = metricValue,
+                MetricTimestamp = DateTime.UnixEpoch
+            };
+        }
     }
 }

@@ -7,6 +7,8 @@ using OneOfDoubleString = OneOf.OneOf<double, string>;
 using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?>;
 using System.Dynamic;
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Collections;
 
 namespace hubitat2prom.HubitatDevice;
 
@@ -37,7 +39,7 @@ namespace hubitat2prom.HubitatDevice;
 /// </example>
 /// </summary>
 [Serializable]
-public class DeviceSummaryAttributes : DynamicObject
+public class DeviceSummaryAttributes : DynamicObject, IDictionary<string, AttributeValue?>
 {
     /// <summary>
     /// Return the name and value of each property in this class instance.
@@ -65,13 +67,27 @@ public class DeviceSummaryAttributes : DynamicObject
     }
 
     private Lazy<Dictionary<string, PropertyInfo>> typedPropertiesLazy
-        => new Lazy<Dictionary<string, PropertyInfo>>(
-            () => this.GetType().GetProperties(
-                  BindingFlags.Public
-                | BindingFlags.Instance
-                | BindingFlags.DeclaredOnly
-            ).ToDictionary(propertyInfo => propertyInfo.Name)
-        );
+    {
+        get
+        {
+            // https://stackoverflow.com/a/39244835
+            var interfaceMethods = this.GetType().GetInterfaces()
+            .Select(@interface => this.GetType().GetInterfaceMap(@interface))
+            .SelectMany(interfaceMapping => interfaceMapping.TargetMethods);
+
+            return new Lazy<Dictionary<string, PropertyInfo>>(
+                () => this.GetType().GetProperties(
+                      BindingFlags.Public
+                    | BindingFlags.Instance
+                    | BindingFlags.DeclaredOnly
+                )
+                .Where(propertyInfo => !propertyInfo.GetAccessors(true).Any(
+                    methodInfo => interfaceMethods.Contains(methodInfo))
+                )
+                .ToDictionary(propertyInfo => propertyInfo.Name)
+            );
+        }
+    }
     private Dictionary<string, PropertyInfo> typedProperties => typedPropertiesLazy.Value;
     private Lazy<Dictionary<string, object>> typedPropertiesAsObjectDictionary
         => new Lazy<Dictionary<string, object>>(() => typedProperties.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value));
@@ -126,6 +142,112 @@ public class DeviceSummaryAttributes : DynamicObject
         var method = memberInfo[0] as MethodInfo;
         result = method.Invoke(this, args);
         return true;
+    }
+
+    public void Add(string key, AttributeValue? value)
+    {
+        if (typedProperties.ContainsKey(key))
+        {
+            try
+            {
+                value.Value.Switch(
+                    @string => typedProperties[key].SetValue(this, @string),
+                    stringArray => typedProperties[key].SetValue(this, stringArray),
+                    @int => typedProperties[key].SetValue(this, @int),
+                    @double => typedProperties[key].SetValue(this, @double),
+                    oneOfDoubleString =>
+                    {
+                        var propertyType = typedProperties[key].PropertyType;
+                        if (propertyType == typeof(double?) || propertyType == typeof(double))
+                        {
+                            typedProperties[key].SetValue(this, oneOfDoubleString.Value.AsT0);
+                        }
+                        else if (propertyType == typeof(string))
+                        {
+                            typedProperties[key].SetValue(this, oneOfDoubleString.Value.AsT1);
+                        }
+                        else
+                        {
+                            typedProperties[key].SetValue(this, oneOfDoubleString);
+                        }
+                    }
+                );
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+            }
+        }
+        else
+        {
+            dynamicProperties[key] = value;
+        }
+    }
+    public bool ContainsKey(string key)
+        => typedProperties.ContainsKey(key) || dynamicProperties.ContainsKey(key);
+
+    public bool Remove(string key)
+        => throw new NotImplementedException();
+
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out AttributeValue? value)
+    {
+        if (typedProperties.ContainsKey(key))
+        {
+            value = (AttributeValue)typedProperties[key].GetValue(this);
+            return true;
+        }
+        else
+        {
+            var success = dynamicProperties.TryGetValue(key, out object attributeValue);
+            value = (AttributeValue)attributeValue;
+            return success;
+        }
+    }
+
+    public void Add(KeyValuePair<string, AttributeValue?> item)
+    {
+        Add(item.Key, item.Value);
+    }
+
+    public void Clear()
+    {
+        dynamicProperties.Clear();
+    }
+
+    public bool Contains(KeyValuePair<string, AttributeValue?> item)
+        => dynamicProperties.Contains(new KeyValuePair<string, object>(item.Key, item.Value));
+
+    public void CopyTo(KeyValuePair<string, AttributeValue?>[] array, int arrayIndex)
+        => throw new NotImplementedException();
+
+    public bool Remove(KeyValuePair<string, AttributeValue?> item)
+        => throw new NotImplementedException();
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return this.GetEnumerator();
+    }
+
+    public ICollection<string> Keys => this.properties.Select(o => o.Key).ToArray();
+
+    public ICollection<AttributeValue?> Values => this.Select(o => o.Value).ToArray();
+
+    public int Count => this.properties.Count();
+
+    public bool IsReadOnly => false;
+
+    public AttributeValue? this[string key]
+    {
+        get
+        {
+            if (!this.TryGetValue(key, out AttributeValue? value)) throw new KeyNotFoundException(key);
+            return value;
+
+        }
+        set
+        {
+            Add(key, value);
+        }
     }
 
     public string dataType { get; set; }
