@@ -54,12 +54,14 @@ public class TestHubitat
     private string _getAllDeviceDetailsJson() => _readResourceJson("AllDeviceDetails");
     private DeviceDetailSummary[] _getAllDeviceDetails()
         => JsonSerializer.Deserialize<DeviceDetailSummary[]>(_getAllDeviceDetailsJson())!;
-    private IHttpClientFactory _getAllDeviceDetailsIHttpClientFactory() =>
-        _mockCreator.GetIHttpClientFactory(new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(_getAllDeviceDetailsJson())
-        });
+    private IHttpClientFactory _getAllDeviceDetailsIHttpClientFactory(Func<string, HttpResponseMessage> httpResponseMessageCreator = null) =>
+        _mockCreator.GetIHttpClientFactory(
+            httpResponseMessageCreator?.Invoke(_getAllDeviceDetailsJson())
+            ?? new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(_getAllDeviceDetailsJson())
+            });
 
     [Fact]
     public async Task Devices_Returns_Summary()
@@ -203,12 +205,40 @@ public class TestHubitat
     {
         var httpClientFactory = _getAllDeviceDetailsIHttpClientFactory();
         var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
-        var device = _getDeviceInfo().First();
 
         var details = await hubitat.DeviceDetails();
         Assert.NotNull(details);
         Assert.NotEmpty(from detail in details select detail.attributes);
         Assert.NotEmpty(from detail in details select detail.capabilities);
         Assert.NotEmpty(from detail in details select detail.commands);
+    }
+
+    [Fact]
+    public async Task DeviceDetails_Returns_All_Device_Details_When_Some_Attributes_Are_Invalid()
+    {
+        var httpClientFactory = _getAllDeviceDetailsIHttpClientFactory(
+            (json) =>
+            {
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(json.Replace(
+                        "\"battery\": \"73\"",
+                        "\"battery\": \"undefined\"" // a string "undefined" is invalid for a decimal
+                    ))
+                };
+            });
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+
+        var details = await hubitat.DeviceDetails();
+        Assert.NotNull(details);
+        Assert.Empty(details.Where(o => o.attributes == null));
+        Assert.Empty(details.Where(o => o.capabilities == null));
+        Assert.Empty(details.Where(o => o.commands == null));
+
+        var attributes = details.First(o => o.name == "Hygrometer - Living Room").attributes;
+        Assert.Null(attributes.battery);
+        Assert.NotNull(attributes.humidity);
+        Assert.True(attributes.humidity > 0);
     }
 }
