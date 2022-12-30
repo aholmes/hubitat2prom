@@ -7,13 +7,14 @@
         "date": "2022-03-03T14:20:00+0000",
         "model": null,
         "manufacturer": null,
+        "room": "Kitchen",
         "capabilities": [
             "Configuration",
-        "Actuator",
-        "Refresh",
-        "HoldableButton",
-        "Switch",
-        "PushableButton"
+            "Actuator",
+            "Refresh",
+            "HoldableButton",
+            "Switch",
+            "PushableButton"
         ],
         "attributes": {
             "dataType": "STRING",
@@ -25,33 +26,57 @@
             "syncStatus": "1 Pending Changes"
         },
         "commands": [
-        {
-            "command": "configure"
-        },
-        {
-            "command": "hold"
-        },
-        {
-            "command": "off"
-        },
-        {
-            "command": "on"
-        },
-        {
-            "command": "paramCommands"
-        },
-        {
-            "command": "push"
-        },
-        {
-            "command": "refresh"
-        },
-        {
-            "command": "setLED"
-        },
-        {
-            "command": "setLEDMode"
-        }
+            {
+                "command": "configure"
+            },
+            {
+                "command": "hold"
+            },
+            {
+                "command": "off"
+            },
+            {
+                "command": "on"
+            },
+            {
+                "command": "paramCommands"
+            },
+            {
+                "command": "push"
+            },
+            {
+                "command": "refresh"
+            },
+            {
+                "command": "setLED"
+            },
+            {
+                "command": "setLEDMode"
+            }
         ]
+    },
+    {
+        "name": "Hygrometer - Living Room",
+        "label": "Hygrometer - Living Room",
+        "type": "Zooz ZSE44 Temperature Humidity XS Sensor",
+        "id": "1360",
+        "date": "2022-12-27T16:40:39+0000",
+        "model": null,
+        "manufacturer": null,
+        "room": "Living Room",
+        "capabilities": [
+            "RelativeHumidityMeasurement",
+            "Battery",
+            "TemperatureMeasurement",
+            "Sensor"
+        ],
+        "attributes": {
+            "humidity": "18",
+            "dataType": "NUMBER",
+            "values": null,
+            "battery": "73",
+            "temperature": "29.0"
+        },
+        "commands": []
     }
 ]

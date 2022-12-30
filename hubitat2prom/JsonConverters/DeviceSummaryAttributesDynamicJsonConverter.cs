@@ -37,8 +37,26 @@ public class DeviceSummaryAttributesDynamicJsonConverter : JsonConverter<DeviceS
                 if (properties.ContainsKey(propertyName))
                 {
                     var property = type.GetProperty(propertyName);
-                    var value = JsonSerializer.Deserialize(ref reader, property.PropertyType, options);
-                    property.SetValue(hubitatDeviceCapabilities, value);
+                    object value = null;
+                    try
+                    {
+                        value = JsonSerializer.Deserialize(ref reader, property.PropertyType, options);
+                        property.SetValue(hubitatDeviceCapabilities, value);
+                    }
+                    catch(Exception e) when (e.InnerException is FormatException)
+                    {
+                        property.FriendlyName();
+                        value = JsonSerializer.Deserialize<object>(ref reader, options);
+                        e.TraceError(
+                            $"Could not deserialize the device attribute named \"{propertyName}\" whose value is \"{value}\". " +
+                            $"The deserialized attribute's type is {value.FriendlyName()}, and the expected type is {property.FriendlyName()}. " +
+                            "This attribute will be skipped."
+                        );
+                    }
+                    catch(Exception e)
+                    {
+                        e.TraceError();
+                    }
                 }
                 else
                 {
