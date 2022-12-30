@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -64,7 +64,7 @@ public class HubitatController : ControllerBase
                     ? "ONLINE"
                     : "OFFLINE"
             },
-            config = HubitatEnv.Instance
+            config = _env
             with
             {
                 HE_TOKEN = Guid.Empty
@@ -89,7 +89,7 @@ public class HubitatController : ControllerBase
         var deviceDetails = await _hubitat.DeviceDetails();
 
         var responseContent = new StringBuilder();
-        var deviceAttributes = HubitatDeviceMetrics.Export(deviceDetails, HubitatEnv.Instance.HE_METRICS);
+        var deviceAttributes = HubitatDeviceMetrics.Export(deviceDetails, _env.HE_METRICS);
         foreach (var deviceAttribute in deviceAttributes)
         {
             responseContent.AppendLine(deviceAttribute.ToString());
@@ -117,7 +117,7 @@ public class HubitatController : ControllerBase
         var deviceDetails = await _hubitat.DeviceDetails(deviceId);
 
         var responseContent = new StringBuilder();
-        var deviceAttributes = HubitatDeviceMetrics.Export(new[] { deviceDetails }, HubitatEnv.Instance.HE_METRICS);
+        var deviceAttributes = HubitatDeviceMetrics.Export(new[] { deviceDetails }, _env.HE_METRICS);
         foreach (var deviceAttribute in deviceAttributes)
         {
             responseContent.AppendLine(deviceAttribute.ToString());

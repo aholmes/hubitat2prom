@@ -9,6 +9,9 @@ using System.Text.Json;
 using System.IO;
 using System.Reflection;
 using hubitat2prom.HubitatDevice;
+using hubitat2prom.Controllers;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace hubitat2prom.Tests;
 
@@ -211,6 +214,27 @@ public class TestHubitat
         Assert.NotEmpty(from detail in details select detail.attributes);
         Assert.NotEmpty(from detail in details select detail.capabilities);
         Assert.NotEmpty(from detail in details select detail.commands);
+    }
+
+    private HubitatController _getHubitatController(HttpResponseMessage clientFactoryResponse)
+    {
+        var httpClientFactory = _mockCreator.GetIHttpClientFactory(clientFactoryResponse);
+
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var mockLogger = new Mock<ILogger<HubitatController>>();
+
+        return new HubitatController(hubitat, _env, mockLogger.Object);
+    }
+
+    [Fact]
+    public async Task GetInfo_Returns_Online_When_Hubitat_Responds_Ok()
+    {
+        var hubitatController = _getHubitatController(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK
+            });
+        var result = await hubitatController.GetInfo();
+        Assert.Equal("ONLINE", result.status.CONNECTION);
     }
 
     [Fact]

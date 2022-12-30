@@ -1,19 +1,20 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hubitat2prom", "hubitat2prom\hubitat2prom.csproj", "{A1295A87-7294-4615-8421-B532C68F0D0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hubitat2prom", "hubitat2prom\hubitat2prom.csproj", "{A1295A87-7294-4615-8421-B532C68F0D0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hubitat2prom.Tests", "hubitat2prom.Tests\hubitat2prom.Tests.csproj", "{33639859-EA58-4155-B0A6-BA1BA48462C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hubitat2prom.Tests", "hubitat2prom.Tests\hubitat2prom.Tests.csproj", "{33639859-EA58-4155-B0A6-BA1BA48462C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "prometheus.exporter", "prometheus.exporter\prometheus.exporter.csproj", "{62267C07-9D15-4A6D-BAEC-CC21D86C225F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "prometheus.exporter.Tests", "prometheus.exporter.Tests\prometheus.exporter.Tests.csproj", "{6DBCF789-4F99-458B-A7C0-50AFC16A991A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A1295A87-7294-4615-8421-B532C68F0D0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -24,5 +25,19 @@ Global
 		{33639859-EA58-4155-B0A6-BA1BA48462C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33639859-EA58-4155-B0A6-BA1BA48462C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33639859-EA58-4155-B0A6-BA1BA48462C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62267C07-9D15-4A6D-BAEC-CC21D86C225F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62267C07-9D15-4A6D-BAEC-CC21D86C225F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62267C07-9D15-4A6D-BAEC-CC21D86C225F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62267C07-9D15-4A6D-BAEC-CC21D86C225F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DBCF789-4F99-458B-A7C0-50AFC16A991A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DBCF789-4F99-458B-A7C0-50AFC16A991A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DBCF789-4F99-458B-A7C0-50AFC16A991A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DBCF789-4F99-458B-A7C0-50AFC16A991A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1F3D6209-9431-4A59-9AF3-E5AF23E25FF8}
 	EndGlobalSection
 EndGlobal
