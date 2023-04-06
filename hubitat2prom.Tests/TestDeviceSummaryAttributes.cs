@@ -18,6 +18,7 @@ public class TestDeviceSummaryAttributes
 {
     private MockCreator _mockCreator;
     private HubitatEnv _env;
+    private Lazy<Assembly> _assembly = new Lazy<Assembly>(() => typeof(hubitat2prom.Tests.TestHubitat).Assembly);
 
     public TestDeviceSummaryAttributes(MockCreator mockCreator)
     {
@@ -25,7 +26,6 @@ public class TestDeviceSummaryAttributes
         _env = new HubitatEnv(new Uri("http://example.org"), Guid.NewGuid());
     }
 
-    private Lazy<Assembly> _assembly = new Lazy<Assembly>(() => typeof(hubitat2prom.Tests.TestHubitat).Assembly);
     private string _readResourceJson(string resourceName)
     {
         var resourceStream = _assembly.Value.GetManifestResourceStream($"{_assembly.Value.GetName().Name}.Data.{resourceName}.json")!;
