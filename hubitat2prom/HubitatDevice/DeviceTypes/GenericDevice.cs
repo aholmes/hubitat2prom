@@ -17,6 +17,7 @@ public class GenericDevice: DeviceType
                 if (name == "power" && TryGetPower(@string, out value)) return value;
                 if (name == "thermostatoperatingstate" && TryGetThermostatOperatingState(@string, out value)) return value;
                 if (name == "thermostatmode" && TryGetThermostatMode(@string, out value)) return value;
+                if (name == "contact") return @string == "closed" ? 1 : 0;
                 
                 return MISSING_VALUE_DEFAULT;
             },
