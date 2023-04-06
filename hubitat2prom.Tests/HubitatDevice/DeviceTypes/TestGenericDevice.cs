@@ -11,9 +11,11 @@ namespace hubitat2prom.Tests.HubitatDevice.DeviceTypes;
 
 public class TestGenericDevice: TestBase
 {
-    // an arbitrary invalid attribute value used to trigger errors in GenericDevice
+    // arbitrary device and attribute values used to trigger errors in GenericDevice in these tests
     private const string INVALID_DEVICE_NAME = "INVALID DEVICE NAME";
     private const string INVALID_ATTRIBUTE_VALUE = "INVALID ATTRIBUTE VALUE";
+    // arbitrary device name to represent any kind of device in these tests
+    private const string ANY_DEVICE_NAME = "ANY DEVICE";
     private const double MISSING_VALUE_DEFAULT = 0d;
 
     public TestGenericDevice(MockCreator mockCreator)
@@ -53,12 +55,59 @@ public class TestGenericDevice: TestBase
     {
         var genericDevice = new GenericDevice();
         Assert.Equal(expectedValue, genericDevice.ExtractMetric(attributeName, attributeValue));
-        /*
-         * string
-         * string[]
-         * int?
-         * double?
-         * OneOf<double, string>?
-         */
     }
+
+    [Fact]
+    public void ExtractMetric_Returns_Correct_String_Array_State_Value()
+    {
+        var genericDevice = new GenericDevice();
+        Assert.Equal(MISSING_VALUE_DEFAULT, genericDevice.ExtractMetric("any device", new string[] { }));
+    }
+
+    [Theory]
+    [InlineData(null, MISSING_VALUE_DEFAULT)]
+    [InlineData(0, 0)]
+    [InlineData(1, 1)]
+    [InlineData(int.MinValue, int.MinValue)]
+    [InlineData(int.MaxValue, int.MaxValue)]
+    public void ExtractMetric_Returns_Correct_Nullable_Int_State_Value(
+        int? attributeValue,
+        double expectedValue)
+    {
+        // is there a different was to make an `int?` with literals?
+        // this test needs to trigger the nullable int code path.
+        if (attributeValue == null)
+        {
+            attributeValue = new int?();
+        }
+
+        var genericDevice = new GenericDevice();
+        Assert.Equal(expectedValue, genericDevice.ExtractMetric("any device", attributeValue));
+    }
+
+    [Theory]
+    [InlineData(null, MISSING_VALUE_DEFAULT)]
+    [InlineData(0d, 0d)]
+    [InlineData(1d, 1d)]
+    [InlineData(double.MinValue, double.MinValue)]
+    [InlineData(double.MaxValue, double.MaxValue)]
+    public void ExtractMetric_Returns_Correct_Nullable_Double_State_Value(
+        double? attributeValue,
+        double expectedValue)
+    {
+        if (attributeValue == null)
+        {
+            attributeValue = new double?();
+        }
+
+        var genericDevice = new GenericDevice();
+        Assert.Equal(expectedValue, genericDevice.ExtractMetric("any device", attributeValue));
+    }
+    /*
+     * string
+     * string[]
+     * int?
+     * double?
+     * OneOf<double, string>?
+     */
 }
