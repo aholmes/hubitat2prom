@@ -107,6 +107,7 @@ public static class HubitatDeviceMetrics
                         if (name == "power" && TryGetPower(@string, out value)) return value;
                         if (name == "thermostatoperatingstate" && TryGetThermostatOperatingState(@string, out value)) return value;
                         if (name == "thermostatmode" && TryGetThermostatMode(@string, out value)) return value;
+                        if (name == "contact") return @string == "closed" ? 1 : 0;
 
                         return 0d;
                     },
