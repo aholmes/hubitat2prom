@@ -19,6 +19,8 @@ public abstract class DeviceType
                 return new FlumeDevice();
             case "Rachio Controller":
                 return new Rachio.RachioControllerDevice();
+            case "Rachio Zone":
+                return new Rachio.RachioZoneDevice();
             default:
                 return new GenericDevice();
         }

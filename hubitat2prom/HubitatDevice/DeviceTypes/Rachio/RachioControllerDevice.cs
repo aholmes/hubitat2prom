@@ -153,7 +153,7 @@ public class RachioControllerDevice : GenericDevice
         switch (attributeName)
         {
             case "curzonerunstatus":
-                if (TryGetCurrentZoneRunStatus(attributeStringValue, out value)) return value;
+                if (TryGetCurZoneRunStatus(attributeStringValue, out value)) return value;
                 break;
             case "water":
                 if (TryGetWater(attributeStringValue, out value)) return value;
@@ -175,7 +175,7 @@ public class RachioControllerDevice : GenericDevice
         return MISSING_VALUE_DEFAULT;
     }
 
-    private static bool TryGetCurrentZoneRunStatus(string zoneRunStatus, out double value)
+    private static bool TryGetCurZoneRunStatus(string zoneRunStatus, out double value)
     {
         switch (zoneRunStatus)
         {
