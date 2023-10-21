@@ -1,5 +1,6 @@
 using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?>;
 using hubitat2prom.HubitatDevice;
+using Rachio = hubitat2prom.HubitatDevice.DeviceTypes.Rachio;
 
 namespace hubitat2prom.PrometheusExporter.DeviceTypes;
 
@@ -16,6 +17,8 @@ public abstract class DeviceType
         {
             case "Flume Device":
                 return new FlumeDevice();
+            case "Rachio Controller":
+                return new Rachio.RachioControllerDevice();
             default:
                 return new GenericDevice();
         }

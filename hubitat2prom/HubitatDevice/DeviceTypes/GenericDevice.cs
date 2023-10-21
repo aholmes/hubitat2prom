@@ -13,12 +13,19 @@ public class GenericDevice: DeviceType
             @string =>
             {
                 var name = attributeName.ToLowerInvariant();
+                // TODO consider removing name=="switch" and
+                // instead put TryGetBoolean first.
                 if (name == "switch") return @string == "on" ? 1 : 0;
                 if (name == "power" && TryGetPower(@string, out value)) return value;
                 if (name == "thermostatoperatingstate" && TryGetThermostatOperatingState(@string, out value)) return value;
                 if (name == "thermostatmode" && TryGetThermostatMode(@string, out value)) return value;
                 if (name == "contact") return @string == "closed" ? 1 : 0;
-                
+
+                // many devices use on/off/true/false for different
+                // attributes. try to capture that here before
+                // bailing out with the default value.
+                if (TryGetBoolean(@string, out value)) return value;
+
                 return MISSING_VALUE_DEFAULT;
             },
             stringArray => MISSING_VALUE_DEFAULT,
@@ -33,6 +40,26 @@ public class GenericDevice: DeviceType
         );
 
         return metricValue;
+    }
+
+    private static bool TryGetBoolean(string stringValue, out double value)
+    {
+        stringValue = stringValue.ToLowerInvariant();
+
+        if (stringValue == "off" || stringValue == "false")
+        {
+            value = 0;
+            return true;
+        }
+
+        if (stringValue == "on" || stringValue == "true")
+        {
+            value = 1;
+            return true;
+        }
+
+        value = -1;
+        return false;
     }
 
     private static bool TryGetPower(string power, out double value)
