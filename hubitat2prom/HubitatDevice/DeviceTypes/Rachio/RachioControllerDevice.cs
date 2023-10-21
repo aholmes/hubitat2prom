@@ -143,8 +143,7 @@ public class RachioControllerDevice : GenericDevice
 
     public override double ExtractMetric(string attributeName, AttributeValue attributeValue)
     {
-        // We can return if the value type is not T0 (string)
-        // because that is the only type this method extracts
+        // If the value is not a string, allow the generic parser to extract the metric.
         if (!attributeValue.IsT0) return base.ExtractMetric(attributeName, attributeValue);
         var attributeStringValue = attributeValue.AsT0;
         double value;
@@ -172,7 +171,8 @@ public class RachioControllerDevice : GenericDevice
                 break;
         }
 
-        return MISSING_VALUE_DEFAULT;
+        // On the off chance the string value is numeric, allow the generic _string_ parser to extract the metric.
+        return base.ExtractNumericMetric(attributeName, attributeStringValue);
     }
 
     private static bool TryGetCurZoneRunStatus(string zoneRunStatus, out double value)

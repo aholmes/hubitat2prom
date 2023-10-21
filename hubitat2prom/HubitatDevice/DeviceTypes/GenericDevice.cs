@@ -23,7 +23,7 @@ public class GenericDevice: DeviceType
 
                 // many devices use on/off/true/false for different
                 // attributes. try to capture that here before
-                // bailing out with the default value.
+                // bailing out.
                 if (TryGetBoolean(@string, out value)) return value;
 
                 return MISSING_VALUE_DEFAULT;
@@ -40,6 +40,24 @@ public class GenericDevice: DeviceType
         );
 
         return metricValue;
+    }
+
+    /// <summary>
+    /// Many attributes are simply ints or doubles stored as strings.
+    /// This method will parse those values and can be used as a
+    /// final metric extraction in extensions of this class.
+    /// This method returns `MISSING_VALUE_DEFAULT` if
+    /// parsing fails.
+    /// </summary>
+    /// <param name="attributeName"></param>
+    /// <param name="attributeValue"></param>
+    /// <returns></returns>
+    public override double ExtractNumericMetric(string attributeName, string attributeValue)
+    {
+        { if (int.TryParse(attributeValue, out int value)) return value; }
+        { if (double.TryParse(attributeValue, out double value)) return value; }
+
+        return MISSING_VALUE_DEFAULT;
     }
 
     private static bool TryGetBoolean(string stringValue, out double value)

@@ -10,6 +10,7 @@ public abstract class DeviceType
 
     protected DeviceType() { }
     public abstract double ExtractMetric(string attributeName, AttributeValue attributeValue);
+    public abstract double ExtractNumericMetric(string attributeName, string attributeValue);
     
     public static DeviceType CreateDeviceType(DeviceSummary deviceSummary)
     {
