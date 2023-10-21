@@ -1,10 +1,7 @@
 ﻿using hubitat2prom.PrometheusExporter.DeviceTypes;
-using System;
+using OneOf;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace hubitat2prom.Tests.HubitatDevice.DeviceTypes;
@@ -61,7 +58,7 @@ public class TestGenericDevice: TestBase
     public void ExtractMetric_Returns_Correct_String_Array_State_Value()
     {
         var genericDevice = new GenericDevice();
-        Assert.Equal(MISSING_VALUE_DEFAULT, genericDevice.ExtractMetric("any device", new string[] { }));
+        Assert.Equal(MISSING_VALUE_DEFAULT, genericDevice.ExtractMetric(ANY_DEVICE_NAME, new string[] { }));
     }
 
     [Theory]
@@ -82,7 +79,7 @@ public class TestGenericDevice: TestBase
         }
 
         var genericDevice = new GenericDevice();
-        Assert.Equal(expectedValue, genericDevice.ExtractMetric("any device", attributeValue));
+        Assert.Equal(expectedValue, genericDevice.ExtractMetric(ANY_DEVICE_NAME, attributeValue));
     }
 
     [Theory]
@@ -101,13 +98,33 @@ public class TestGenericDevice: TestBase
         }
 
         var genericDevice = new GenericDevice();
-        Assert.Equal(expectedValue, genericDevice.ExtractMetric("any device", attributeValue));
+        Assert.Equal(expectedValue, genericDevice.ExtractMetric(ANY_DEVICE_NAME, attributeValue));
     }
-    /*
-     * string
-     * string[]
-     * int?
-     * double?
-     * OneOf<double, string>?
-     */
+
+    [Theory]
+    [ClassData(typeof(OneOfDoubleOrString))]
+    public void ExtractMetric_Returns_Correct_Nullable_Double_Or_String_State_Value(
+        OneOf<double, string>? attributeValue,
+        double expectedValue)
+    {
+        var genericDevice = new GenericDevice();
+        Assert.Equal(expectedValue, genericDevice.ExtractMetric(ANY_DEVICE_NAME, attributeValue));
+    }
+
+    public class OneOfDoubleOrString : IEnumerable<object?[]>
+    {
+        public IEnumerator<object?[]> GetEnumerator()
+        {
+            yield return new object?[] { null, MISSING_VALUE_DEFAULT };
+            yield return new object?[] { (OneOf<double, string>?)0d, MISSING_VALUE_DEFAULT };
+            yield return new object?[] { (OneOf<double, string>?)"", MISSING_VALUE_DEFAULT };
+            yield return new object?[] { (OneOf<double, string>?)INVALID_ATTRIBUTE_VALUE, MISSING_VALUE_DEFAULT };
+            yield return new object?[] { (OneOf<double, string>?)0d, MISSING_VALUE_DEFAULT };
+            yield return new object?[] { (OneOf<double, string>?)1d, 1d};
+            yield return new object?[] { (OneOf<double, string>?)double.MinValue, double.MinValue};
+            yield return new object?[] { (OneOf<double, string>?)double.MaxValue, double.MaxValue};
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
 }
