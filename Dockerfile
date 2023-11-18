@@ -4,9 +4,9 @@ ARG TARGETARCH
 WORKDIR /app
 
 COPY . ./
-RUN dotnet restore -a $TARGETARCH
+RUN dotnet restore -a $TARGETARCH hubitat2prom
 
-RUN dotnet publish -a $TARGETARCH --no-restore -c Release -o out
+RUN dotnet publish -a $TARGETARCH --no-restore -c Release --property:PublishDir=/app/out hubitat2prom
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
