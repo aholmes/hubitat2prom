@@ -1,7 +1,7 @@
 # hubitat2prom
 Hubitat Prometheus exporter
 
-C# port of the Python [hubitat2prom](https://github.com/BudgetSmartHome/hubitat2prom).
+C# alternative to the Python [hubitat2prom](https://github.com/BudgetSmartHome/hubitat2prom). This application support a wider set of devices and device attributes, and provides type safety gaurantees.
 
 # Prerequisites
 
