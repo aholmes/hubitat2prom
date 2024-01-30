@@ -43,7 +43,7 @@ public class DeviceSummaryAttributesDynamicJsonConverter : JsonConverter<DeviceS
                         value = JsonSerializer.Deserialize(ref reader, property.PropertyType, options);
                         property.SetValue(hubitatDeviceCapabilities, value);
                     }
-                    catch(Exception e) when (e.InnerException is FormatException)
+                    catch (Exception e) when (e.InnerException is FormatException)
                     {
                         property.FriendlyName();
                         value = JsonSerializer.Deserialize<object>(ref reader, options);
@@ -53,7 +53,7 @@ public class DeviceSummaryAttributesDynamicJsonConverter : JsonConverter<DeviceS
                             "This attribute will be skipped."
                         );
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         e.TraceError();
                     }
@@ -146,7 +146,11 @@ public class DynamicJsonConverter : JsonConverter<dynamic>
             case JsonValueKind.Number:
                 //TODO: more num type
                 result = 0;
-                if (jsonElement.TryGetInt64(out long l))
+                if (jsonElement.TryGetDouble(out double d))
+                {
+                    result = d;
+                }
+                else if (jsonElement.TryGetInt64(out long l))
                 {
                     result = l;
                 }

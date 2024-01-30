@@ -9,6 +9,10 @@ using System.Text.Json;
 using System.IO;
 using System.Reflection;
 using hubitat2prom.HubitatDevice;
+using hubitat2prom.Controllers;
+using Moq;
+using Microsoft.Extensions.Logging;
+using hubitat2prom.PrometheusExporter;
 
 namespace hubitat2prom.Tests;
 
@@ -54,7 +58,7 @@ public class TestHubitat
     private string _getAllDeviceDetailsJson() => _readResourceJson("AllDeviceDetails");
     private DeviceDetailSummary[] _getAllDeviceDetails()
         => JsonSerializer.Deserialize<DeviceDetailSummary[]>(_getAllDeviceDetailsJson())!;
-    private IHttpClientFactory _getAllDeviceDetailsIHttpClientFactory(Func<string, HttpResponseMessage> httpResponseMessageCreator = null) =>
+    private IHttpClientFactory _getAllDeviceDetailsIHttpClientFactory(Func<string, HttpResponseMessage>? httpResponseMessageCreator = null) =>
         _mockCreator.GetIHttpClientFactory(
             httpResponseMessageCreator?.Invoke(_getAllDeviceDetailsJson())
             ?? new HttpResponseMessage
@@ -240,5 +244,45 @@ public class TestHubitat
         Assert.Null(attributes.battery);
         Assert.NotNull(attributes.humidity);
         Assert.True(attributes.humidity > 0);
+    }
+
+    [Fact]
+    public async Task DeviceDetails_Returns_Dynamic_Device_Attribute_Values()
+    {
+        var httpClientFactory = _getAllDeviceDetailsIHttpClientFactory();
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+
+        var details = await hubitat.DeviceDetails();
+
+        var attributes = (dynamic)details.First(o => o.name == "Hub Information").attributes;
+        Assert.NotNull(attributes.freeMemory);
+        Assert.Equal(123d, attributes.freeMemory);
+    }
+
+    [Theory]
+    [InlineData(123, 123d)]
+    [InlineData(123.4, 123.4d)]
+    public async Task DeviceMetricsExporter_Returns_Dynamic_Device_Attribute_Values(
+        double jsonValue, double expectedValue
+    )
+    {
+        var httpClientFactory = _getAllDeviceDetailsIHttpClientFactory(
+            (json) =>
+            {
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(json.Replace(
+                        "\"freeMemory\": 123",
+                        $"\"freeMemory\": {jsonValue}"
+                    ))
+                };
+            });
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+
+        var details = await hubitat.DeviceDetails();
+        var heMetrics = _env.HE_METRICS.Concat(["freeMemory"]).ToArray();
+        var deviceAttributes = HubitatDeviceMetrics.Export(details, heMetrics).Single(o => o.MetricName == "freeMemory");
+        Assert.Equal(expectedValue, deviceAttributes.MetricValue);
     }
 }

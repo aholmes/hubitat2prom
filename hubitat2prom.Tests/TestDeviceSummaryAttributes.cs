@@ -9,7 +9,7 @@ using hubitat2prom.HubitatDevice;
 using Xunit;
 using Microsoft.CSharp.RuntimeBinder;
 using System.Collections.Generic;
-using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?>;
+using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?, long?>;
 using System.Dynamic;
 
 namespace hubitat2prom.Tests;
@@ -122,6 +122,7 @@ public class TestDeviceSummaryAttributes
         deviceSummaryAttributes.abc123 = "123";
         Assert.Equal("123", deviceSummaryAttributes.abc123);
     }
+
 
     [Fact]
     public void DeviceSummaryAttributes_Disallows_Getting_Arbitrary_Properties_That_Have_Not_Been_Set()

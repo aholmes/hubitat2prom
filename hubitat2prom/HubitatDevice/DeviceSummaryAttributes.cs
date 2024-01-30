@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 using OneOfDoubleString = OneOf.OneOf<double, string>;
-using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?>;
+using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?, long?>;
 using System.Dynamic;
 using System;
 
@@ -50,11 +50,13 @@ public class DeviceSummaryAttributes : DynamicObject
             var propertyInfo = propertyInfoEntry.Value;
             AttributeValue? attributeValue = null;
             var value = (propertyInfo as PropertyInfo)?.GetValue(this) ?? propertyInfo;
+
             if (value is string @string) attributeValue = AttributeValue.FromT0(@string);
             if (value is string[] stringValue) attributeValue = AttributeValue.FromT1(stringValue);
             if (value is int @int) attributeValue = AttributeValue.FromT2(@int);
             if (value is double @double) attributeValue = AttributeValue.FromT3(@double);
             if (value is OneOfDoubleString oneOfDoubleString) attributeValue = AttributeValue.FromT4(oneOfDoubleString);
+            if (value is long @long) attributeValue = AttributeValue.FromT5(@long);
 
             return new KeyValuePair<string, AttributeValue?>(
                 propertyName,

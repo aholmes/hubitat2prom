@@ -119,7 +119,8 @@ public static class HubitatDeviceMetrics
                             @double => @double,
                             @string => 0
                             )
-                        : 0
+                        : 0,
+                    @long => @long ?? 0d
                 );
 
                 yield return new ExporterHubitatDeviceMetric

@@ -78,5 +78,24 @@
             "temperature": "29.0"
         },
         "commands": []
+    },
+    {
+        "name": "Hub Information",
+        "label": "Hub Information",
+        "type": "Hub Information",
+        "id": "1234",
+        "date": "2022-12-27T16:40:39+0000",
+        "model": null,
+        "manufacturer": null,
+        "room": "Office",
+        "capabilities": [
+            "FreeMemory"
+        ],
+        "attributes": {
+            "freeMemory": 123,
+            "dataType": "NUMBER",
+            "values": null
+        },
+        "commands": []
     }
 ]
