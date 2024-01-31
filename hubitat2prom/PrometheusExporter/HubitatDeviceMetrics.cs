@@ -109,6 +109,8 @@ public static class HubitatDeviceMetrics
                         if (name == "thermostatmode" && TryGetThermostatMode(@string, out value)) return value;
                         if (name == "contact") return @string == "closed" ? 1 : 0;
 
+                        if (double.TryParse(@string, out double result)) return result;
+
                         return 0d;
                     },
                     stringArray => 0d,

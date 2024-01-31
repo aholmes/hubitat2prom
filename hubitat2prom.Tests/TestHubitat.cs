@@ -13,6 +13,7 @@ using hubitat2prom.Controllers;
 using Moq;
 using Microsoft.Extensions.Logging;
 using hubitat2prom.PrometheusExporter;
+using OneOf;
 
 namespace hubitat2prom.Tests;
 
@@ -260,10 +261,49 @@ public class TestHubitat
     }
 
     [Theory]
-    [InlineData(123, 123d)]
-    [InlineData(123.4, 123.4d)]
+    [InlineData(123d, null, 123d)]
+    [InlineData(123.4d, null, 123.4d)]
+    [InlineData(null, "123", 123d)]
+    [InlineData(null, "123.4", 123.4d)]
     public async Task DeviceMetricsExporter_Returns_Dynamic_Device_Attribute_Values(
-        double jsonValue, double expectedValue
+        double? jsonDoubleValue, string jsonStringValue, double expectedValue
+    )
+    {
+        var expectedValueFormatted = jsonDoubleValue.HasValue ? jsonDoubleValue.ToString() : ("\"" + jsonStringValue + "\"");
+        var httpClientFactory = _getAllDeviceDetailsIHttpClientFactory(
+            (json) =>
+            {
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(json.Replace(
+                        "\"freeMemory\": 123",
+                        $"\"freeMemory\": {expectedValueFormatted}"
+                    ))
+                };
+            });
+        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+
+        var details = await hubitat.DeviceDetails();
+        var heMetrics = _env.HE_METRICS.Concat(["freeMemory"]).ToArray();
+        var deviceAttributes = HubitatDeviceMetrics.Export(details, heMetrics).Single(o => o.MetricName == "freeMemory");
+
+        if (jsonDoubleValue != null)
+        {
+            Assert.Equal(expectedValue, deviceAttributes.MetricValue);
+        }
+        else
+        {
+            _ = double.TryParse(jsonStringValue, out double value);
+            Assert.Equal(expectedValue, deviceAttributes.MetricValue);
+        }
+    }
+
+    [Theory]
+    [InlineData(123, "123.0")]
+    [InlineData(123.4, "123.4")]
+    public async Task GetMetrics_Returns_Dynamic_Device_Attribute_Values(
+        double jsonValue, string expectedValue
     )
     {
         var httpClientFactory = _getAllDeviceDetailsIHttpClientFactory(
@@ -274,15 +314,16 @@ public class TestHubitat
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent(json.Replace(
                         "\"freeMemory\": 123",
-                        $"\"freeMemory\": {jsonValue}"
+                        $"\"freeMemory\": \"{jsonValue}\""
                     ))
                 };
             });
-        var hubitat = new Hubitat(_env.HE_URI, _env.HE_TOKEN, httpClientFactory);
+        var env = new HubitatEnv(new Uri("http://example.org"), Guid.NewGuid(), ["freeMemory"]);
+        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, httpClientFactory);
+        var hubitatController = new HubitatController(hubitat, env, new Mock<ILogger<HubitatController>>().Object);
 
-        var details = await hubitat.DeviceDetails();
-        var heMetrics = _env.HE_METRICS.Concat(["freeMemory"]).ToArray();
-        var deviceAttributes = HubitatDeviceMetrics.Export(details, heMetrics).Single(o => o.MetricName == "freeMemory");
-        Assert.Equal(expectedValue, deviceAttributes.MetricValue);
+        var metrics = await hubitatController.GetMetrics();
+
+        Assert.Equal($"hubitat_freememory{{device_name=\"hub_information\"}} {expectedValue}", metrics.Content?.Trim());
     }
 }

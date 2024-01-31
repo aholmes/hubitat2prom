@@ -15,7 +15,7 @@ public class DeviceSummaryAttributesDynamicJsonConverter : JsonConverter<DeviceS
     {
         public SerializerSetMemberBinder(string name, bool ignoreCase) : base(name, ignoreCase) { }
 
-        public override DynamicMetaObject FallbackSetMember(DynamicMetaObject target, DynamicMetaObject value, DynamicMetaObject? errorSuggestion)
+        public override DynamicMetaObject FallbackSetMember(DynamicMetaObject target, DynamicMetaObject value, DynamicMetaObject errorSuggestion)
             => throw new NotImplementedException();
     }
 
@@ -128,9 +128,9 @@ public class DynamicJsonConverter : JsonConverter<dynamic>
         }
         return expandoObject;
     }
-    private object? ReadValue(JsonElement jsonElement)
+    private object ReadValue(JsonElement jsonElement)
     {
-        object? result = null;
+        object result = null;
         switch (jsonElement.ValueKind)
         {
             case JsonValueKind.Object:
@@ -171,9 +171,9 @@ public class DynamicJsonConverter : JsonConverter<dynamic>
         return result;
     }
 
-    private object? ReadList(JsonElement jsonElement)
+    private object ReadList(JsonElement jsonElement)
     {
-        IList<object?> list = new List<object?>();
+        IList<object> list = new List<object>();
         foreach (var item in jsonElement.EnumerateArray())
         {
             list.Add(ReadValue(item));
