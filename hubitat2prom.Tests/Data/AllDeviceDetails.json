@@ -97,5 +97,18 @@
             "values": null
         },
         "commands": []
+    },
+    {
+        "name": "Dummy",
+        "label": "Dummy",
+        "type": "Dummy",
+        "id": "999",
+        "date": "2022-03-03T14:20:00+0000",
+        "model": null,
+        "manufacturer": null,
+        "room": "",
+        "capabilities": [],
+        "attributes": {},
+        "commands": []
     }
 ]

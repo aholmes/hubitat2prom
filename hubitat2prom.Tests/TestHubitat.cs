@@ -14,6 +14,7 @@ using Moq;
 using Microsoft.Extensions.Logging;
 using hubitat2prom.PrometheusExporter;
 using OneOf;
+using System.Dynamic;
 
 namespace hubitat2prom.Tests;
 
@@ -325,5 +326,64 @@ public class TestHubitat
         var metrics = await hubitatController.GetMetrics();
 
         Assert.Equal($"hubitat_freememory{{device_name=\"hub_information\"}} {expectedValue}", metrics.Content?.Trim());
+    }
+
+    [Theory]
+    [InlineData("switch", "on", 1)]
+    [InlineData("switch", "off", 0)]
+    [InlineData("switch", "", 0)]
+    [InlineData("power", "on", 1)]
+    [InlineData("power", "off", 0)]
+    [InlineData("power", 1.2, 1.2)]
+    [InlineData("power", "", 0)]
+    [InlineData("thermostatoperatingstate", "heating", 0)]
+    [InlineData("thermostatoperatingstate", "pending cool", 1)]
+    [InlineData("thermostatoperatingstate", "pending heat", 2)]
+    [InlineData("thermostatoperatingstate", "vent economizer", 3)]
+    [InlineData("thermostatoperatingstate", "idle", 4)]
+    [InlineData("thermostatoperatingstate", "cooling", 5)]
+    [InlineData("thermostatoperatingstate", "fan only", 6)]
+    [InlineData("thermostatoperatingstate", "", 0)]
+    [InlineData("thermostatmode", "auto", 0)]
+    [InlineData("thermostatmode", "off", 1)]
+    [InlineData("thermostatmode", "heat", 2)]
+    [InlineData("thermostatmode", "emergency heat", 3)]
+    [InlineData("thermostatmode", "cool", 4)]
+    [InlineData("thermostatmode", "", 0)]
+    [InlineData("contact", "closed", 1)]
+    [InlineData("contact", "not closed", 0)]
+    [InlineData("contact", "", 0)]
+    [InlineData("presence", "present", 1)]
+    [InlineData("presence", "not present", 0)]
+    [InlineData("presence", "", 0)]
+    public async Task DeviceMetricsExporter_Exports_Expected_Mapped_string_Values(
+        string attributeName, OneOf<string, double> jsonValue, double expectedValue
+    )
+    {
+        var value = jsonValue.IsT0
+            ? $"\"{jsonValue.AsT0}\""
+            : jsonValue.AsT1.ToString();
+
+        var httpClientFactory = _getAllDeviceDetailsIHttpClientFactory(
+            (json) =>
+            {
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(json.Replace(
+                        "\"attributes\": {}",
+                        $"\"attributes\": {{ \"{attributeName}\": \"{value}\" }}"
+                    ))
+                };
+            });
+        var env = new HubitatEnv(new Uri("http://example.org"), Guid.NewGuid(), ["freeMemory"]);
+        var hubitat = new Hubitat(env.HE_URI, env.HE_TOKEN, httpClientFactory);
+
+        var details = (await hubitat.DeviceDetails()).Single(o => o.name == "Dummy");
+
+        var heMetrics = _env.HE_METRICS.Concat([attributeName]).ToArray();
+        var deviceAttributes = HubitatDeviceMetrics.Export(new[] { details }, heMetrics).Single(o => o.MetricName == attributeName);
+
+        Assert.Equal(expectedValue, deviceAttributes.MetricValue);
     }
 }

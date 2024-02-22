@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using hubitat2prom.HubitatDevice;
 
+using AttributeValue = OneOf.OneOf<string, string[], int?, double?, OneOf.OneOf<double, string>?, long?>;
+
 namespace hubitat2prom.PrometheusExporter;
 
 public static class HubitatDeviceMetrics
@@ -76,6 +78,37 @@ public static class HubitatDeviceMetrics
             }
     }
 
+    private static double GetValue(string attributeName, AttributeValue attributeValue)
+    {
+        double value;
+        return attributeValue.Match(
+            @string =>
+            {
+                var name = attributeName.ToLowerInvariant();
+                if (name == "switch") return @string == "on" ? 1 : 0;
+                if (name == "power" && TryGetPower(@string, out value)) return value;
+                if (name == "thermostatoperatingstate" && TryGetThermostatOperatingState(@string, out value)) return value;
+                if (name == "thermostatmode" && TryGetThermostatMode(@string, out value)) return value;
+                if (name == "contact") return @string == "closed" ? 1 : 0;
+                if (name == "presence") return @string == "present" ? 1 : 0;
+
+                if (double.TryParse(@string, out double result)) return result;
+
+                return 0d;
+            },
+            stringArray => 0d,
+            nullableInt => nullableInt ?? 0d,
+            nullableDouble => nullableDouble ?? 0d,
+            nullableOneOfDoubleString => nullableOneOfDoubleString.HasValue
+                ? nullableOneOfDoubleString.Value.Match(
+                        @double => GetValue(attributeName, @double),
+                        @string => GetValue(attributeName, @string)
+                    )
+                : 0d,
+            @long => @long ?? 0d
+        );
+    }
+
     /// <summary>
     /// Convert the metrics of Hubitat device details from a query for all devices,
     /// e.g., `/apps/api/712/devices/all`, into Prometheus exporter metrics.
@@ -98,32 +131,7 @@ public static class HubitatDeviceMetrics
                 var deviceName = Regex.Replace(deviceDetail.label, INVALID_CHARACTER_REGEX, "_");
 
                 var rawMetricValue = attributeValue.Value;
-                double value;
-                var metricValue = rawMetricValue.Match(
-                    @string =>
-                    {
-                        var name = attributeName.ToLowerInvariant();
-                        if (name == "switch") return @string == "on" ? 1 : 0;
-                        if (name == "power" && TryGetPower(@string, out value)) return value;
-                        if (name == "thermostatoperatingstate" && TryGetThermostatOperatingState(@string, out value)) return value;
-                        if (name == "thermostatmode" && TryGetThermostatMode(@string, out value)) return value;
-                        if (name == "contact") return @string == "closed" ? 1 : 0;
-
-                        if (double.TryParse(@string, out double result)) return result;
-
-                        return 0d;
-                    },
-                    stringArray => 0d,
-                    nullableInt => nullableInt ?? 0d,
-                    nullableDouble => nullableDouble ?? 0d,
-                    nullableOneOfDoubleString => nullableOneOfDoubleString.HasValue
-                        ? nullableOneOfDoubleString.Value.Match(
-                            @double => @double,
-                            @string => 0
-                            )
-                        : 0,
-                    @long => @long ?? 0d
-                );
+                var metricValue = GetValue(attributeName, rawMetricValue);
 
                 yield return new ExporterHubitatDeviceMetric
                 {
